@@ -9,7 +9,6 @@ from persistypy.backend.base_store import BaseBucketStore, BucketNotFound
 class ListBucket(list):
     """Subclass of :py:class:`list` allowing for weak references"""
     pass
-import pyximport
 
 class PersistentList(object):
     """
