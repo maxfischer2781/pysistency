@@ -2,8 +2,8 @@ from weakref import WeakValueDictionary
 from collections import deque
 import math
 
-from persistypy.utilities.constants import NOTSET
-from persistypy.backend.base_store import BaseBucketStore, BucketNotFound
+from pysistency.utilities.constants import NOTSET
+from pysistency.backend.base_store import BaseBucketStore, BucketNotFound
 
 
 class ListBucket(list):

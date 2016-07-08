@@ -2,7 +2,7 @@ import unittest
 import random
 import tempfile
 
-import persistypy.pdict
+import pysistency.pdict
 
 
 class _DictTestcasesMixin(object):
@@ -120,7 +120,7 @@ class TestPersistentDict(unittest.TestCase, _DictTestcasesMixin):
         _DictTestcasesMixin.setUp(self)
         self.persistent_paths = [tempfile.TemporaryDirectory()]
         self.test_objects = [
-            persistypy.pdict.PersistentDict(
+            pysistency.pdict.PersistentDict(
                 store_uri=self.persistent_paths[0].name
             )
         ]
@@ -132,12 +132,12 @@ class TestPersistentDictSalted(unittest.TestCase, _DictTestcasesMixin):
         salt_count = 8
         self.persistent_paths = [tempfile.TemporaryDirectory() for _ in range(salt_count)]
         self.test_objects = [
-            persistypy.pdict.PersistentDict(
+            pysistency.pdict.PersistentDict(
                 store_uri=self.persistent_paths[idx].name,
                 bucket_salt=random.randint(0, 1024*1024*1024)
             )
             for idx in range(salt_count)
-        ]
+            ]
 
 
 class TestPersistentDictBucketCount(unittest.TestCase, _DictTestcasesMixin):
@@ -146,12 +146,12 @@ class TestPersistentDictBucketCount(unittest.TestCase, _DictTestcasesMixin):
         bucket_exponential = 10  # 1024 buckets
         self.persistent_paths = [tempfile.TemporaryDirectory() for _ in range(bucket_exponential)]
         self.test_objects = [
-            persistypy.pdict.PersistentDict(
+            pysistency.pdict.PersistentDict(
                 store_uri=self.persistent_paths[idx].name,
                 bucket_count=2**(idx+1)
             )
             for idx in range(bucket_exponential)
-        ]
+            ]
 
 
 class TestPersistentDictCacheSize(unittest.TestCase, _DictTestcasesMixin):
@@ -160,12 +160,12 @@ class TestPersistentDictCacheSize(unittest.TestCase, _DictTestcasesMixin):
         cache_size = [32, 16, 8, 4, 2, 0]
         self.persistent_paths = [tempfile.TemporaryDirectory() for _ in range(len(cache_size))]
         self.test_objects = [
-            persistypy.pdict.PersistentDict(
+            pysistency.pdict.PersistentDict(
                 store_uri=self.persistent_paths[idx].name,
                 cache_size=cache_size[idx]
             )
             for idx in range(len(cache_size))
-        ]
+            ]
 
 
 class TestPersistentDictCacheKeys(unittest.TestCase, _DictTestcasesMixin):
@@ -173,7 +173,7 @@ class TestPersistentDictCacheKeys(unittest.TestCase, _DictTestcasesMixin):
         _DictTestcasesMixin.setUp(self)
         self.persistent_paths = [tempfile.TemporaryDirectory()]
         self.test_objects = [
-            persistypy.pdict.PersistentDict(
+            pysistency.pdict.PersistentDict(
                 store_uri=self.persistent_paths[0].name,
                 cache_keys=False
             )

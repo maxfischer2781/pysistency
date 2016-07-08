@@ -1,10 +1,10 @@
 import urllib.parse
-import persistypy.utilities.exceptions
+import pysistency.utilities.exceptions
 
-from persistypy.utilities.constants import NOTSET
+from pysistency.utilities.constants import NOTSET
 
 
-class PTPStoreException(persistypy.utilities.exceptions.PTPException):
+class PTPStoreException(pysistency.utilities.exceptions.PTPException):
     pass
 
 
