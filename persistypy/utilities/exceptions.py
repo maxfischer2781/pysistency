@@ -1,0 +1,2 @@
+class PTPException(Exception):
+    pass
