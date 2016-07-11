@@ -5,7 +5,7 @@ import tempfile
 import pysistency.pdict
 
 
-class _DictTestcasesMixin(object):
+class DictTestcases(unittest.TestCase):
     """Tests for dictionary like objects"""
     def setUp(self):
         self.test_objects = []
@@ -32,7 +32,6 @@ class _DictTestcasesMixin(object):
         # get all
         for test_target in self.test_objects:
             for key, value in self.key_values:
-                test_target[key] = value
                 self.assertEqual(test_target[key], value)
         # del all
         for test_target in self.test_objects:
@@ -108,16 +107,16 @@ class _DictTestcasesMixin(object):
             self.assertEqual(len(test_target), len(self.key_values))
 
 
-class TestPythonDict(unittest.TestCase, _DictTestcasesMixin):
+class TestPythonDict(DictTestcases):
     """Test for consistency with regular dict"""
     def setUp(self):
-        _DictTestcasesMixin.setUp(self)
+        DictTestcases.setUp(self)
         self.test_objects = [{}]
 
 
-class TestPersistentDict(unittest.TestCase, _DictTestcasesMixin):
+class TestPersistentDict(DictTestcases):
     def setUp(self):
-        _DictTestcasesMixin.setUp(self)
+        DictTestcases.setUp(self)
         self.persistent_paths = [tempfile.TemporaryDirectory()]
         self.test_objects = [
             pysistency.pdict.PersistentDict(
@@ -126,9 +125,9 @@ class TestPersistentDict(unittest.TestCase, _DictTestcasesMixin):
         ]
 
 
-class TestPersistentDictSalted(unittest.TestCase, _DictTestcasesMixin):
+class TestPersistentDictSalted(DictTestcases):
     def setUp(self):
-        _DictTestcasesMixin.setUp(self)
+        DictTestcases.setUp(self)
         salt_count = 8
         self.persistent_paths = [tempfile.TemporaryDirectory() for _ in range(salt_count)]
         self.test_objects = [
@@ -140,9 +139,9 @@ class TestPersistentDictSalted(unittest.TestCase, _DictTestcasesMixin):
             ]
 
 
-class TestPersistentDictBucketCount(unittest.TestCase, _DictTestcasesMixin):
+class TestPersistentDictBucketCount(DictTestcases):
     def setUp(self):
-        _DictTestcasesMixin.setUp(self)
+        DictTestcases.setUp(self)
         bucket_exponential = 10  # 1024 buckets
         self.persistent_paths = [tempfile.TemporaryDirectory() for _ in range(bucket_exponential)]
         self.test_objects = [
@@ -154,9 +153,9 @@ class TestPersistentDictBucketCount(unittest.TestCase, _DictTestcasesMixin):
             ]
 
 
-class TestPersistentDictCacheSize(unittest.TestCase, _DictTestcasesMixin):
+class TestPersistentDictCacheSize(DictTestcases):
     def setUp(self):
-        _DictTestcasesMixin.setUp(self)
+        DictTestcases.setUp(self)
         cache_size = [32, 16, 8, 4, 2, 0]
         self.persistent_paths = [tempfile.TemporaryDirectory() for _ in range(len(cache_size))]
         self.test_objects = [
@@ -168,9 +167,9 @@ class TestPersistentDictCacheSize(unittest.TestCase, _DictTestcasesMixin):
             ]
 
 
-class TestPersistentDictCacheKeys(unittest.TestCase, _DictTestcasesMixin):
+class TestPersistentDictCacheKeys(DictTestcases):
     def setUp(self):
-        _DictTestcasesMixin.setUp(self)
+        DictTestcases.setUp(self)
         self.persistent_paths = [tempfile.TemporaryDirectory()]
         self.test_objects = [
             pysistency.pdict.PersistentDict(
