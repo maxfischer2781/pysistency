@@ -10,6 +10,7 @@ class ListBucket(list):
     """Subclass of :py:class:`list` allowing for weak references"""
     pass
 
+
 class PersistentList(object):
     """
     Sequence object that is persistently stored
@@ -146,6 +147,8 @@ class PersistentList(object):
         :return: key to the bucket stored persistently
         :rtype: str
         """
+        if index < 0:
+            index += self._length
         return self.bucket_key_fmt % (index // self._bucket_length)
 
     def _fetch_bucket(self, bucket_key):
@@ -380,6 +383,6 @@ class PersistentList(object):
         #self._active_items = type(self._active_items)()
 
     def __str__(self):
-        return '[%s]' % (', '.join(
-            str(self._get_bucket(bucket_key)) for bucket_key in self._bucket_keys
+        return '[<%s>]' % ('>, <'.join(
+            str(self._get_bucket(bucket_key))[1:-1] for bucket_key in self._bucket_keys
         ))
