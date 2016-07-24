@@ -383,6 +383,15 @@ class PersistentList(object):
         self._active_buckets = type(self._active_buckets)()
         #self._active_items = type(self._active_items)()
 
+    def insert(self, index, value):
+        raise NotImplementedError
+
+    def pop(self, index=None):
+        raise NotImplementedError
+
+    def remove(self, value):
+        raise NotImplementedError
+
     def __str__(self):
         return '[<%s>]' % ('>, <'.join(
             str(self._get_bucket(bucket_key))[1:-1] for bucket_key in self._bucket_keys
