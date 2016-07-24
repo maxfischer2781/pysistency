@@ -72,4 +72,16 @@ class TestPythonList(ListTestcases):
         super().setUp()
         self.test_objects = [[]]
 
+
+class TestPersistentList(ListTestcases):
+    """Test for consistency with regular dict"""
+    def setUp(self):
+        super().setUp()
+        self.persistent_paths = [tempfile.TemporaryDirectory()]
+        self.test_objects = [
+            pysistency.plist.PersistentList(
+                store_uri=self.persistent_paths[0].name
+            )
+        ]
+
 del ListTestcases
