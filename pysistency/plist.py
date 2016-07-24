@@ -392,6 +392,9 @@ class PersistentList(object):
     def remove(self, value):
         raise NotImplementedError
 
+    def reverse(self, value):
+        raise NotImplementedError
+
     def __str__(self):
         return '[<%s>]' % ('>, <'.join(
             str(self._get_bucket(bucket_key))[1:-1] for bucket_key in self._bucket_keys
