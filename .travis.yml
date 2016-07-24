@@ -1,0 +1,22 @@
+language: python
+
+python:
+  - "3.3"
+  - "3.4"
+  - "3.5"
+
+os:
+  - linux
+#  - osx
+
+before_script:
+  - pip install codecov
+  - pip install coverage
+  - export COVERAGE_PROCESS_START=$(pwd)/.coveragerc
+
+script:
+  - coverage run setup.py test
+
+after_success:
+  - coverage report
+  - codecov
