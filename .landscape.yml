@@ -1,0 +1,14 @@
+strictness: high
+max-line-length: 120
+autodetect: true
+
+#ignore-paths:
+#    - pysistency_sphinx
+
+python-targets:
+  - 3
+
+pep8:
+  disable:
+    - N804
+    - N805
