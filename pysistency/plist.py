@@ -2,6 +2,7 @@ from weakref import WeakValueDictionary
 from collections import deque
 import math
 
+from pysistency.utilities.std_clone import inherit_docstrings
 from pysistency.utilities.constants import NOTSET
 from pysistency.backend.base_store import BaseBucketStore, BucketNotFound
 
@@ -11,6 +12,7 @@ class ListBucket(list):
     pass
 
 
+@inherit_docstrings(inherit_from=list)
 class PersistentList(object):
     """
     Sequence object that is persistently stored
@@ -370,7 +372,6 @@ class PersistentList(object):
             self._length += len(bucket_sequence)
 
     def clear(self):
-        """Remove all items from the sequence"""
         # clear persistent storage
         for bucket_key in self._bucket_keys:
             self._bucket_store.free_bucket(bucket_key=bucket_key)
