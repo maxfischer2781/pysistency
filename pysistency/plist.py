@@ -38,6 +38,7 @@ class PersistentList(object):
         self._len = 0
         self._bucket_cache = None
         self._cache_size = None
+        self.bucket_key_fmt = None
         # load current settings
         try:
             for attr, value in self._bucket_store.fetch_head().items():

@@ -37,6 +37,7 @@ class FileBucketStore(base_store.BaseBucketStore):
 
     def __init__(self, store_uri):
         self._pickle_protocol = None
+        self._permissions = None
         self._path = None
         base_store.BaseBucketStore.__init__(self, store_uri=store_uri)
         os.makedirs(self._path, mode=self._permissions, exist_ok=True)
