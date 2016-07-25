@@ -63,9 +63,9 @@ class PersistentList(object):
         Store the meta-information of the dict
         """
         self._bucket_store.store_head({
-                attr: getattr(self, attr) for attr in
-                ('bucket_length', '_bucket_count')
-            })
+            attr: getattr(self, attr) for attr in
+            ('bucket_length', '_bucket_count')
+        })
 
     def _fetch_length(self):
         """Calculate the length of the list from the persistent store"""

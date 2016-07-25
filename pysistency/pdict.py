@@ -70,9 +70,9 @@ class PersistentDict(object):
         Store the meta-information of the dict
         """
         self._bucket_store.store_head({
-                attr: getattr(self, attr) for attr in
-                ('bucket_count', 'bucket_salt', '_bucket_keys')
-            })
+            attr: getattr(self, attr) for attr in
+            ('bucket_count', 'bucket_salt', '_bucket_keys')
+        })
 
     def _bucket_fmt_digits(self, bucket_count=None):
         """Return the number of hex digits required for the bucket name"""
@@ -501,7 +501,8 @@ class PersistentDict(object):
         :note: Since the state of the mapping also depends on accesses, the strict
                guarantee for iteration sequence equivalence given by ``dict`` is
                not replicated. Thus, it cannot be assumed that
-               ``d.items() == zip(d.values(), d.keys()) == zip(d.itervalues(), d.iterkeys()) == [(v, k) for (k, v) in d.iteritems()]``
+               ``d.items() == zip(d.values(), d.keys()) == zip(d.itervalues(),
+               d.iterkeys()) == [(v, k) for (k, v) in d.iteritems()]``
                holds true in any case.
         """
         return list(self.iteritems())

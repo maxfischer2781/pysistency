@@ -59,7 +59,9 @@ class FileBucketStore(base_store.BaseBucketStore):
         ))
         self._permissions = int(parameters.pop(
             'permissions',
-            (os.stat(os.path.dirname(self._path)).st_mode & 0o777) if os.path.exists(os.path.dirname(self._path)) else 0o777
+            (os.stat(os.path.dirname(self._path)).st_mode & 0o777)
+            if os.path.exists(os.path.dirname(self._path))
+            else 0o777
         ))
         if parameters:
             raise ValueError('Unrecognized parameter(s) %s' % list(parameters.keys()))

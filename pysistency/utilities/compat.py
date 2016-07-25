@@ -1,4 +1,7 @@
-
+"""
+Compatibility for different python versions/interpeters
+"""
+# pylint: disable=invalid-name,undefined-variable
 
 # pickle
 try:
