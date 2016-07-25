@@ -8,6 +8,10 @@ os:
   - linux
 #  - osx
 
+env:
+  - __PYSISTENCY_FASTHASH__=''
+  - __PYSISTENCY_FASTHASH__='YES'
+
 before_script:
   - pip install codecov
   - pip install coverage

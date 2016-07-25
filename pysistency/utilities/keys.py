@@ -1,3 +1,4 @@
+import os
 import zlib
 from datetime import datetime as datetime_type
 
@@ -38,3 +39,6 @@ def hashkey_fast(obj, salt=0):
             return zlib.adler32(str(obj).encode(), salt) & 0xffffffff
     return hash(obj) & 0xffffffff
 hashkey_fast.types = {str, bytes, datetime_type}
+
+if os.environ.get('__PYSISTENCY_FASTHASH__'):
+    hashkey = hashkey_fast
