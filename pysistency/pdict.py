@@ -2,6 +2,7 @@ from weakref import WeakValueDictionary
 from collections import deque
 import math
 
+from pysistency.utilities.std_clone import inherit_docstrings
 from pysistency.utilities.keys import hashkey, HASHKEY_HEXFMT
 from pysistency.utilities.constants import NOTSET
 from pysistency.backend.base_store import BaseBucketStore, BucketNotFound
@@ -12,6 +13,7 @@ class DictBucket(dict):
     pass
 
 
+@inherit_docstrings(inherit_from=dict)
 class PersistentDict(object):
     """
     Mapping object that is persistently stored
@@ -530,7 +532,7 @@ class PersistentDict(object):
     # high level operations
     def copy(self):
         """
-        Return a shallow copy of the dictionary.
+        :__doc__:
 
         :note: This will return a ``dict``, not a :py:class:`~.PersistentDict`.
         """
