@@ -14,11 +14,11 @@ seamlessly keep data across program executions.
    :target: https://landscape.io/github/maxfischer2781/pysistency/develop
    :alt: Code Health
 
-.. |travis| image:: https://travis-ci.org/maxfischer2781/pysistency.svg?branch=master
+.. |travis| image:: https://travis-ci.org/maxfischer2781/pysistency.svg?branch=develop
     :target: https://travis-ci.org/maxfischer2781/pysistency
     :alt: Test Health
 
-.. |codecov| image:: https://codecov.io/gh/maxfischer2781/pysistency/branch/master/graph/badge.svg
+.. |codecov| image:: https://codecov.io/gh/maxfischer2781/pysistency/branch/develop/graph/badge.svg
   :target: https://codecov.io/gh/maxfischer2781/pysistency
   :alt: Code Coverage
 
