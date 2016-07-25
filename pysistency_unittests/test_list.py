@@ -7,8 +7,13 @@ import pysistency.plist
 
 class ListTestcases(unittest.TestCase):
     def setUp(self):
+        self.persistent_paths = []
         self.test_objects = []
         self.values = [(random.random() * 1024) for _ in range(256)]
+
+    def tearDown(self):
+        for temp_dir in self.persistent_paths:
+            temp_dir.cleanup()
 
     def test_append(self):
         # set all

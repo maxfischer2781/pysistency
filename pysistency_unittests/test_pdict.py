@@ -8,6 +8,7 @@ import pysistency.pdict
 class DictTestcases(unittest.TestCase):
     """Tests for dictionary like objects"""
     def setUp(self):
+        self.persistent_paths = []
         self.test_objects = []
         self.key_values = []
         # numerical
@@ -22,6 +23,10 @@ class DictTestcases(unittest.TestCase):
         self.key_values += [
             (str(random.random() * 1024).encode(), str(random.random() * 1024).encode()) for _ in range(256)
             ]
+
+    def tearDown(self):
+        for temp_dir in self.persistent_paths:
+            temp_dir.cleanup()
 
     def test_brackets(self):
         # set all
