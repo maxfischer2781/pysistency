@@ -11,7 +11,7 @@ storage. These containers allow working with data too large for memory, and to
 seamlessly keep data across program executions.
 
 .. |landscape| image:: https://landscape.io/github/maxfischer2781/pysistency/master/landscape.svg?style=flat
-   :target: https://landscape.io/github/maxfischer2781/pysistency/master
+   :target: https://landscape.io/github/maxfischer2781/pysistency/develop
    :alt: Code Health
 
 .. |travis| image:: https://travis-ci.org/maxfischer2781/pysistency.svg?branch=master
