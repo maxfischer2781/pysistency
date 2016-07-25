@@ -309,7 +309,21 @@ class PersistentDict(object):
             return key in bucket
 
     def __len__(self):
-        return len(self.keys())
+        # try cached
+        if self._keys_cache is not None:
+            return len(self._keys_cache)
+        # count each bucket, see 'keys' for iteration scheme
+        read_buckets, length = set(), 0
+        # start with the buckets we have in memory
+        for bucket_key in self._active_buckets.keys():
+            length += len(self._active_buckets[bucket_key])
+            read_buckets.add(bucket_key)
+        # pull in remaining buckets
+        for bucket_key in self._bucket_keys:
+            if bucket_key not in read_buckets:
+                length += len(self._fetch_bucket(bucket_key))
+                read_buckets.add(bucket_key)
+        return length
 
     def __bool__(self):
         # can only have items if we have buckets
@@ -318,7 +332,7 @@ class PersistentDict(object):
     __nonzero__ = __bool__
 
     def __iter__(self):
-        """:see: :py:meth:`~.PersistentDict.iterkeys`"""
+        """:see: :py:meth:`~.PersistentDict.keys`"""
         read_buckets = set()
         # start with the buckets we have in memory
         for bucket_key in self._active_buckets.keys():
@@ -450,84 +464,48 @@ class PersistentDict(object):
         updatebuckets(kwargs.items())
 
     # iterations
-    def iter(self):
+    def keys(self):
         """
-        Return an iterator over the keys of the dictionary. This is a shortcut
-        for :py:meth:`~.PersistentDict.iterkeys`.
+        :__doc__:
+
+        If ``d.cache_keys == True``, the view provides keys without access to the
+        persistent backend, but in arbitrary order. This is likely to jump between
+        persistent buckets.
+
+        If ``d.cache_keys == False``, iteration is aligned to buckets - this is only
+        an implementation detail and may change in the future. If you need aligned
+        iteration, use ``for key in d`` or directly access :py:meth:`.items`.
 
         :note: See the note on iterator equivalency for :py:meth:`~.PersistentDict.items`.
         """
-        return self.iterkeys()
+        return PersistentDictKeysView(self)
 
-    def iterkeys(self):
+    def items(self):
         """
-        Return an iterator over the keys of the dictionary.
+        :__doc__:
 
         This iterates over all keys in a semi-deterministic way. First, all keys
         from buckets cached in memory are returned. Following this, keys from the
         remaining buckets are returned.
 
-        :note: This function does not benefit from ``cache_keys``.
-
-        :note: See the note on iterator equivalency for :py:meth:`~.PersistentDict.items`.
-        """
-        return iter(self)
-
-    def keys(self):
-        """
-        Return a copy of the dictionary’s list of keys.
-
-        :note: If ``cache_keys`` is set, keys are returned in arbitrary order.
-               Otherwise, the order of :py:meth:`~.PersistentDict.iterkeys` is
-               used.
-
-        :note: See the note on iterator equivalency for :py:meth:`~.PersistentDict.items`.
-        """
-        if self._keys_cache is not None:
-            return list(self._keys_cache)
-        return list(iter(self))
-
-    def iteritems(self):
-        """
-        Return an iterator over the dictionary’s list of ``(key, value)`` pairs.
-
-        :note: See the note on iterator equivalency for :py:meth:`~.PersistentDict.items`.
-        """
-        for item_key in self:
-            yield (item_key, self[item_key])
-
-    def items(self):
-        """
-        Return a copy of the dictionary’s list of ``(key, value)`` pairs.
+        :note: Due to aligning keys to buckets, this function does not benefit from
+               ``d.cache_keys == True``.
 
         :note: Since the state of the mapping also depends on accesses, the strict
                guarantee for iteration sequence equivalence given by ``dict`` is
                not replicated. Thus, it cannot be assumed that
-               ``d.items() == zip(d.values(), d.keys()) == zip(d.itervalues(),
-               d.iterkeys()) == [(v, k) for (k, v) in d.iteritems()]``
+               ``d.items() == zip(d.values(), d.keys()) == [(v, k) for (k, v) in d]``
                holds true in any case.
         """
-        return list(self.iteritems())
-
-    def itervalues(self):
-        """
-        Return an iterator over the dictionary’s values.
-
-        :note: See the note on iterator equivalency for :py:meth:`~.PersistentDict.items`.
-        """
-        try:
-            for item_key in self:
-                yield self[item_key]
-        except KeyError:
-            raise RuntimeError("dictionary changed size during iteration")
+        return PersistentDictItemsView(self)
 
     def values(self):
         """
-        Return a copy of the dictionary’s list of values.
+        :__doc__:
 
         :note: See the note on iterator equivalency for :py:meth:`~.PersistentDict.items`.
         """
-        return list(self.itervalues())
+        return PersistentDictValuesView(self)
 
     # high level operations
     def copy(self):
@@ -567,3 +545,72 @@ class PersistentDict(object):
             if cache_repr:
                 reprs.append(cache_repr + ": <?>")
         return ",".join(reprs)
+
+
+class PersistentDictView(object):
+    """
+    View to a :py:class:`~.PersistentDict`
+
+    :type pdict: :py:class:`~.PersistentDict`
+    """
+    short_name = 'pdict_keys'
+
+    def __init__(self, pdict):
+        self._pdict = pdict
+
+    def __len__(self):
+        return len(self._pdict)
+
+    def __bool__(self):
+        return bool(self._pdict)
+
+    def __iter__(self):
+        raise NotImplementedError
+
+    def __contains__(self, item):
+        raise NotImplementedError
+
+    def __repr__(self):
+        return '%s([%s])' % (self.short_name, ', '.join(str(item) for item in self))
+
+
+class PersistentDictKeysView(PersistentDictView):
+    short_name = 'pdict_keys'
+
+    def __iter__(self):
+        return iter(self._pdict)
+
+    def __contains__(self, item):
+        return item in self._pdict
+
+    def __repr__(self):
+        return 'pdict_keys([%s])' % ', '.join(str(item) for item in self)
+
+
+class PersistentDictValuesView(PersistentDictView):
+    short_name = 'pdict_values'
+
+    def __iter__(self):
+        try:
+            for item_key in self._pdict:
+                yield self._pdict[item_key]
+        except KeyError:
+            raise RuntimeError("dictionary changed size during iteration")
+
+    def __contains__(self, item):
+        return any(item == element for element in self)
+
+
+class PersistentDictItemsView(PersistentDictView):
+    short_name = 'pdict_items'
+
+    def __iter__(self):
+        try:
+            for item_key in self._pdict:
+                yield item_key, self._pdict[item_key]
+        except KeyError:
+            raise RuntimeError("dictionary changed size during iteration")
+
+    def __contains__(self, item):
+        key, value = item
+        return key in self._pdict and any(value == element for element in self)
