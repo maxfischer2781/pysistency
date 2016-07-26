@@ -17,7 +17,7 @@ before_script:
   - pip install codecov
   - pip install coverage
   - '[[ "${CYTHONIZE}" == "YES" ]] && pip install cython || :'
-  - '[[ "${CYTHONIZE}" == "YES" ]] && python setup.py install --cythonize || python setup.py install'
+  - '[[ "${CYTHONIZE}" == "YES" ]] && python setup.py install --cythonize && rm -rf pysistency || python setup.py install'
   - python -c 'import pysistency.meta; print(pysistency.meta.__file__)'
   - export COVERAGE_PROCESS_START=$(pwd)/.coveragerc
 
