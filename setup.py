@@ -4,7 +4,7 @@ import sys
 import codecs
 try:
     sys.argv.remove('--cythonize')
-except IndexError:
+except (IndexError, ValueError):
     cythonize = False
 else:
     cythonize = True
