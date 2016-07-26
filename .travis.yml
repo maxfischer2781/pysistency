@@ -9,14 +9,14 @@ os:
 #  - osx
 
 env:
-  - __PYSISTENCY_FASTHASH__=''
-  - __PYSISTENCY_FASTHASH__='YES'
-  - CYTHONIZE='--cythonize'
+  - __PYSISTENCY_FASTHASH__=
+  - __PYSISTENCY_FASTHASH__="YES"
+  - CYTHONIZE="--cythonize"
 
 before_script:
   - pip install codecov
   - pip install coverage
-  - [[ -z "${input+x}" ]] && pip install cython
+  - [[ 0"${CYTHONIZE}" == "--cythonize" ]] && pip install cython
   - export COVERAGE_PROCESS_START=$(pwd)/.coveragerc
 
 script:
