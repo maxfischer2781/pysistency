@@ -11,16 +11,17 @@ os:
 env:
   - __PYSISTENCY_FASTHASH__=
   - __PYSISTENCY_FASTHASH__="YES"
-  - CYTHONIZE="--cythonize"
+  - CYTHONIZE="YES"
 
 before_script:
   - pip install codecov
   - pip install coverage
-  - '[[ "${CYTHONIZE}" == "--cythonize" ]] && pip install cython'
+  - '[[ "${CYTHONIZE}" == "YES" ]] && pip install cython || :'
+  - '[[ "${CYTHONIZE}" == "YES" ]] && python setup.py install --cythonize || :'
   - export COVERAGE_PROCESS_START=$(pwd)/.coveragerc
 
 script:
-  - coverage run setup.py ${CYTHONIZE} test
+  - time coverage run setup.py test
 
 after_success:
   - coverage report
@@ -29,4 +30,4 @@ after_success:
 matrix:
   fast_finish: true
   allow_failures:
-  - env: CYTHONIZE='--cythonize'
+  - env: CYTHONIZE="YES"
