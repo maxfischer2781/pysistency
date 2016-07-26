@@ -1,6 +1,8 @@
 import unittest
 import random
 import tempfile
+import datetime
+import time
 
 import pysistency.pdict
 
@@ -13,15 +15,20 @@ class DictTestcases(unittest.TestCase):
         self.key_values = []
         # numerical
         self.key_values += [
-            (random.random() * 1024, random.random() * 1024) for _ in range(256)
+            ((idx + random.random()) * 1024, idx) for idx in range(256)
             ]
         # string
         self.key_values += [
-            (str(random.random() * 1024), str(random.random() * 1024)) for _ in range(256)
+            (str((idx + random.random()) * 1024), str(idx+256)) for idx in range(256)
             ]
         # bytes
         self.key_values += [
-            (str(random.random() * 1024).encode(), str(random.random() * 1024).encode()) for _ in range(256)
+            (str((idx + random.random()) * 1024).encode(), str(idx+512).encode()) for idx in range(256)
+            ]
+        # datetime
+        now = time.time()
+        self.key_values += [
+            (datetime.datetime.fromtimestamp(now + idx), datetime.datetime.fromtimestamp(now + idx)) for idx in range(256)
             ]
 
     def tearDown(self):
