@@ -16,7 +16,7 @@ env:
 before_script:
   - pip install codecov
   - pip install coverage
-  - \[\[ "${CYTHONIZE}" == "--cythonize" \]\] && pip install cython
+  - '[[ "${CYTHONIZE}" == "--cythonize" ]] && pip install cython'
   - export COVERAGE_PROCESS_START=$(pwd)/.coveragerc
 
 script:
