@@ -23,3 +23,8 @@ script:
 after_success:
   - coverage report
   - codecov
+
+matrix:
+  fast_finish: true
+  allow_failures:
+  - env: __PYSISTENCY_FASTHASH__='YES'
