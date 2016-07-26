@@ -1,2 +1,1 @@
-from . import base_store
-from . import file_store
+from . import base_store, file_store

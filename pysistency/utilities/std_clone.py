@@ -3,7 +3,7 @@ Tools for cloning standard library objects
 """
 
 
-def inherit_docstrings(inherit_from):
+def inherit_docstrings(*, inherit_from):
     """
     Decorator for classes whose attributes/methods inherit docstrings
 
