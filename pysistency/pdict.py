@@ -50,6 +50,7 @@ class PersistentDict(object):
         try:
             for attr, value in self._bucket_store.fetch_head().items():
                 setattr(self, attr, value)
+            self._update_bucket_key_fmt()
         except BucketNotFound:
             pass
         # apply new settings
@@ -77,7 +78,8 @@ class PersistentDict(object):
         """
         self._bucket_store.store_head({
             attr: getattr(self, attr) for attr in
-            ('bucket_count', 'bucket_salt', '_bucket_keys')
+            # work directly on internal values, setters are called as part of init for finalization
+            ('_bucket_count', '_bucket_salt', '_bucket_keys')
         })
 
     def _bucket_fmt_digits(self, bucket_count=None):
