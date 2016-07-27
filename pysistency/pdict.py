@@ -628,5 +628,8 @@ class PersistentDictItemsView(PersistentDictView):
             raise RuntimeError("dictionary changed size during iteration")
 
     def __contains__(self, item):
-        key, value = item
-        return key in self._pdict and any(value == element for element in self)
+        try:
+            key, value = item
+        except TypeError:  # not a tuple
+            return False
+        return key in self._pdict and any(value == element[1] for element in self)
