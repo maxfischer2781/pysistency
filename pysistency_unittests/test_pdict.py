@@ -108,6 +108,42 @@ class DictTestcases(unittest.TestCase):
             for key, value in self.key_values:
                 self.assertFalse(key in test_target)
 
+    def test_container_iteration(self):
+        kv_dict = dict(self.key_values)
+        kv_keys = kv_dict.keys()
+        kv_values = kv_dict.values()
+        kv_items = kv_dict.items()
+        for test_target in self.test_objects:
+            test_target.update(kv_dict)
+        # implicit
+        for test_target in self.test_objects:
+            for key in test_target:
+                self.assertEqual(test_target[key], kv_dict[key])
+        # views
+        for test_target in self.test_objects:
+            test_keys = test_target.keys()
+            for key in test_keys:
+                self.assertTrue(key in test_keys)
+                self.assertTrue(key in kv_keys)
+                self.assertEqual(test_target[key], kv_dict[key])
+        for test_target in self.test_objects:
+            test_keys = test_target.keys()
+            for key in test_keys:
+                self.assertTrue(key in test_keys)
+                self.assertTrue(key in kv_keys)
+                self.assertEqual(test_target[key], kv_dict[key])
+        for test_target in self.test_objects:
+            test_values = test_target.values()
+            for value in test_values:
+                self.assertTrue(value in test_values)
+                self.assertTrue(value in kv_values)
+        for test_target in self.test_objects:
+            test_items = test_target.items()
+            for item in test_items:
+                self.assertTrue(item in test_items)
+                self.assertTrue(item in kv_items)
+
+
     def test_dict_update(self):
         kv_dict = dict(self.key_values)
         # test empty
@@ -197,7 +233,7 @@ class TestPersistentDictBucketCount(DictTestcases):
 class TestPersistentDictCacheSize(DictTestcases):
     def setUp(self):
         DictTestcases.setUp(self)
-        cache_size = [32, 16, 8, 4, 2, 0]
+        cache_size = [128, 5, 4, 0]
         self.persistent_paths = [tempfile.TemporaryDirectory() for _ in range(len(cache_size))]
         self.test_objects = [
             pysistency.pdict.PersistentDict(
