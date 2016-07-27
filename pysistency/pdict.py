@@ -66,6 +66,10 @@ class PersistentDict(object):
         if cache_keys:
             self._keys_cache = set(self.keys())
 
+    @property
+    def store_uri(self):
+        return self._bucket_store.store_uri
+
     # Settings
     def _store_head(self):
         """
@@ -155,6 +159,17 @@ class PersistentDict(object):
                 raise NotImplementedError('Changing bucket count not implemented yet')
         # apply secondary settings
         self._update_bucket_key_fmt()
+
+    @property
+    def cache_keys(self):
+        return self._keys_cache is not None
+
+    @cache_keys.setter
+    def cache_keys(self, value):
+        if value and not self.cache_keys:  # switch on
+            self._keys_cache = set(self.keys())
+        elif not value and self.cache_keys:  # switch off
+            self._keys_cache = None
 
     def _update_bucket_key_fmt(self):
         # key: count, salt, index
@@ -263,7 +278,7 @@ class PersistentDict(object):
         """
         Commit all outstanding changes to persistent store
         """
-        for bucket_key, bucket in self._active_buckets.values():
+        for bucket_key, bucket in self._active_buckets.items():
             self._store_bucket(bucket_key, bucket)
 
     # dictionary interface
