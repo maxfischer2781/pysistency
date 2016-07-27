@@ -147,15 +147,19 @@ class DictTestcases(unittest.TestCase):
             self.assertFalse(self.no_key_value in test_items)
             self.assertFalse(self.no_key_value in kv_items)
 
-
     def test_dict_update(self):
         kv_dict = dict(self.key_values)
-        # test empty
-        for test_target in self.test_objects:
-            self.assertEqual(len(test_target), 0)
         # test update
         for test_target in self.test_objects:
+            # assert empty
+            self.assertEqual(len(test_target), 0)
+            # update with dict
             test_target.update(kv_dict)
+            self.assertEqual(len(test_target), len(self.key_values))
+            test_target.clear()
+            self.assertEqual(len(test_target), 0)
+            # update with iterable
+            test_target.update(self.key_values)
             self.assertEqual(len(test_target), len(self.key_values))
 
     def test_persist(self):
