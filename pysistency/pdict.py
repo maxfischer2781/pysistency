@@ -64,8 +64,7 @@ class PersistentDict(object):
         # store new settings
         self._store_head()
         # cache keys in memory
-        if cache_keys:
-            self._keys_cache = set(self.keys())
+        self.cache_keys = cache_keys
 
     @property
     def store_uri(self):
@@ -168,9 +167,9 @@ class PersistentDict(object):
 
     @cache_keys.setter
     def cache_keys(self, value):
-        if value and not self.cache_keys:  # switch on
+        if value and self.cache_keys is None:  # switch on
             self._keys_cache = set(self.keys())
-        elif not value and self.cache_keys:  # switch off
+        elif not value and self.cache_keys is not None:  # switch off
             self._keys_cache = None
 
     def _update_bucket_key_fmt(self):
