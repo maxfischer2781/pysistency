@@ -41,4 +41,4 @@ def hashkey_fast(obj, salt=0):
 hashkey_fast.types = {str, bytes, datetime_type}
 
 if os.environ.get('__PYSISTENCY_FASTHASH__'):
-    hashkey = hashkey_fast
+    hashkey = hashkey_fast  # noqa
