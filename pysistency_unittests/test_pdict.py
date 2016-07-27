@@ -162,6 +162,42 @@ class DictTestcases(unittest.TestCase):
             test_target.update(self.key_values)
             self.assertEqual(len(test_target), len(self.key_values))
 
+    def test_get(self):
+        kv_dict = dict(self.key_values)
+        default_value = str(random.random())
+        # test update
+        for test_target in self.test_objects:
+            for key in kv_dict:
+                self.assertEqual(test_target.get(key, default_value), default_value)
+            test_target.update(kv_dict)
+            for key in kv_dict:
+                self.assertEqual(test_target.get(key, default_value), kv_dict[key])
+
+    def test_pop(self):
+        kv_dict = dict(self.key_values)
+        default_value = str(random.random())
+        # test update
+        for test_target in self.test_objects:
+            test_target.update(kv_dict)
+            for key in kv_dict:
+                self.assertEqual(test_target.pop(key, default_value), kv_dict[key])
+            for key in kv_dict:
+                self.assertEqual(test_target.pop(key, default_value), default_value)
+            for key in kv_dict:
+                with self.assertRaises(KeyError):
+                    test_target.pop(key)
+
+    def test_setdefault(self):
+        kv_dict = dict(self.key_values)
+        default_value = str(random.random())
+        # test update
+        for test_target in self.test_objects:
+            for key in kv_dict:
+                self.assertEqual(test_target.setdefault(key, kv_dict[key]), kv_dict[key])
+            for key in kv_dict:
+                self.assertEqual(test_target[key], kv_dict[key])
+            self.assertEqual(test_target.setdefault(self.no_key_value[0], default_value), default_value)
+
     def test_persist(self):
         kv_dict = dict(self.key_values)
         # test update
