@@ -30,6 +30,7 @@ class DictTestcases(unittest.TestCase):
         self.key_values += [
             (datetime.datetime.fromtimestamp(now + idx), datetime.datetime.fromtimestamp(now + idx)) for idx in range(256)
             ]
+        self.no_key_value = (-999, -999)
 
     def tearDown(self):
         for temp_dir in self.persistent_paths:
@@ -118,7 +119,10 @@ class DictTestcases(unittest.TestCase):
         # implicit
         for test_target in self.test_objects:
             for key in test_target:
+                self.assertTrue(key in test_target)
+                self.assertTrue(key in kv_dict)
                 self.assertEqual(test_target[key], kv_dict[key])
+            self.assertFalse(self.no_key_value[0] in test_target)
         # views
         for test_target in self.test_objects:
             test_keys = test_target.keys()
@@ -126,22 +130,22 @@ class DictTestcases(unittest.TestCase):
                 self.assertTrue(key in test_keys)
                 self.assertTrue(key in kv_keys)
                 self.assertEqual(test_target[key], kv_dict[key])
-        for test_target in self.test_objects:
-            test_keys = test_target.keys()
-            for key in test_keys:
-                self.assertTrue(key in test_keys)
-                self.assertTrue(key in kv_keys)
-                self.assertEqual(test_target[key], kv_dict[key])
+            self.assertFalse(self.no_key_value[0] in test_keys)
+            self.assertFalse(self.no_key_value[0] in kv_keys)
         for test_target in self.test_objects:
             test_values = test_target.values()
             for value in test_values:
                 self.assertTrue(value in test_values)
                 self.assertTrue(value in kv_values)
+            self.assertFalse(self.no_key_value[1] in test_values)
+            self.assertFalse(self.no_key_value[1] in kv_values)
         for test_target in self.test_objects:
             test_items = test_target.items()
             for item in test_items:
                 self.assertTrue(item in test_items)
                 self.assertTrue(item in kv_items)
+            self.assertFalse(self.no_key_value in test_items)
+            self.assertFalse(self.no_key_value in kv_items)
 
 
     def test_dict_update(self):
