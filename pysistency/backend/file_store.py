@@ -43,16 +43,16 @@ class FileBucketStore(base_store.BaseBucketStore):
         os.makedirs(self._path, mode=self._permissions, exist_ok=True)
 
     def _digest_uri(self, parsed_url):
-        if ';' in parsed_url.path:
-            path, parameters = parsed_url.path.split(';', 1)
-            parameters = {param.split('=', 1) for param in parameters.split('&')}
-        else:
-            path, parameters = parsed_url.path, {}
         self._path = os.path.join(
             '/',
             parsed_url.netloc or os.getcwd(),
-            path
+            parsed_url.path
         )
+        if ';' in self._path:
+            self._path, parameters = parsed_url.path.split(';', 1)
+            parameters = dict(param.split('=', 1) for param in parameters.split('&'))
+        else:
+            self._path, parameters = parsed_url.path, {}
         self._pickle_protocol = int(parameters.pop(
             'pickleprotocol',
             pickle.HIGHEST_PROTOCOL
@@ -82,7 +82,7 @@ class FileBucketStore(base_store.BaseBucketStore):
         try:
             os.unlink(self._get_bucket_path(bucket_key=bucket_key))
         except FileNotFoundError:
-            return base_store.BucketNotFound
+            raise base_store.BucketNotFound
 
     def store_bucket(self, bucket_key, bucket):
         with open(self._get_bucket_path(bucket_key=bucket_key), 'wb') as bucket_file:
