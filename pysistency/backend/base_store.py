@@ -37,7 +37,7 @@ class BaseBucketStore(object):
         self._digest_uri(parsed_url=parsed_url)
 
     def _digest_uri(self, parsed_url):
-        pass
+        raise NotImplementedError
 
     @classmethod
     def supports_uri(cls, store_uri):
