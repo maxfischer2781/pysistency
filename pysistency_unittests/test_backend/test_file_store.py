@@ -9,9 +9,6 @@ class TestFileBucketStore(unittest.TestCase):
     def setUp(self):
         self.temp_dir = tempfile.TemporaryDirectory()
         self.store_uri = 'file://' + os.path.abspath(self.temp_dir.name).strip('/') + '/'
-        print(self.__class__.__name__)
-        print(self.temp_dir)
-        print(self.store_uri)
 
     def tearDown(self):
         self.temp_dir.cleanup()
