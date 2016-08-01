@@ -48,6 +48,12 @@ class FileBucketStore(base_store.BaseBucketStore):
             parsed_url.netloc or os.getcwd(),
             parsed_url.path.lstrip('/')
         )
+        print(self.__class__.__name__)
+        print(
+            '/',
+            parsed_url.netloc or os.getcwd(),
+            parsed_url.path.lstrip('/')
+        )
         if ';' in self._path:
             self._path, parameters = parsed_url.path.split(';', 1)
             parameters = dict(param.split('=', 1) for param in parameters.split('&'))
