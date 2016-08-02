@@ -14,6 +14,12 @@ class TestFileBucketStore(unittest.TestCase):
         self.temp_dir.cleanup()
 
     def test_store_uri(self):
+        # relative path
+        rel_store_uri = 'file://' + os.path.relpath(self.temp_dir.name).rstrip('/') + '/'
+        self.assertEqual(
+            os.path.abspath(file_store.FileBucketStore(store_uri=rel_store_uri)._path),
+            os.path.abspath(self.temp_dir.name)
+        )
         # recognized parameter
         self.assertEqual(
             file_store.FileBucketStore(store_uri=self.store_uri + '?pickleprotocol=0')._pickle_protocol,
