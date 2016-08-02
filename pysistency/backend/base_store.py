@@ -60,7 +60,7 @@ class BaseBucketStore(object):
         if not urllib.parse.urlsplit(store_uri).scheme:
             if default_scheme == NOTSET:
                 raise ValueError('URI %r does not provide scheme and no fallback defined' % store_uri)
-            store_uri = default_scheme + ':' + store_uri
+            store_uri = default_scheme + '://' + store_uri
         # prefer subclasses in case they overwrite the use of our protocol
         for sub_cls in cls.__subclasses__():
             try:
