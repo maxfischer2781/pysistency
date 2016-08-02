@@ -51,11 +51,6 @@ class FileBucketStore(base_store.BaseBucketStore):
             )
         else:
             self._path = parsed_url.path
-        self._path = os.path.join(
-            '/',
-            parsed_url.netloc or os.getcwd(),
-            parsed_url.path.lstrip('/')
-        )
         if ';' in self._path:  # file URI does not accept parameter
             raise ValueError('URI contains parameter(s)')  # ...;foo=bar
         parameters = self._parse_query(parsed_url.query)
