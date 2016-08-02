@@ -1,5 +1,6 @@
 import urllib.parse
 import pysistency.utilities.exceptions
+import collections
 
 from pysistency.utilities.constants import NOTSET
 
@@ -14,6 +15,8 @@ class BucketNotFound(PTPStoreException):
 
 class BaseBucketStore(object):
     uri_scheme = None
+    #: options accepted via the URI query part (?foo=2)
+    uri_query_options = {}
 
     def __init__(self, store_uri):
         self._store_uri = None
@@ -38,6 +41,14 @@ class BaseBucketStore(object):
 
     def _digest_uri(self, parsed_url):
         raise NotImplementedError
+
+    @staticmethod
+    def _parse_query(url_query):
+        """Parse a URL query component"""
+        if not url_query:
+            return {}
+        key_values = [param.split('=', 1) for param in url_query.split('&')]
+        return collections.OrderedDict(key_values)
 
     @classmethod
     def supports_uri(cls, store_uri):

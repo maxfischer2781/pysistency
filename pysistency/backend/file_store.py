@@ -30,7 +30,7 @@ class FileBucketStore(base_store.BaseBucketStore):
     `file:///tmp/persist/foo`
       Store files in folder `/tmp/persist/`, prefixed with `foo`.
 
-    `file://cache/persist/;pickleprotocol=2`
+    `file://cache/persist/?pickleprotocol=2`
        Store files in folder `cache/persist`, using :py:mod:`pickle` protocol 2.
     """
     uri_scheme = 'file'
@@ -43,22 +43,22 @@ class FileBucketStore(base_store.BaseBucketStore):
         os.makedirs(self._path, mode=self._permissions, exist_ok=True)
 
     def _digest_uri(self, parsed_url):
+        if parsed_url.netloc:  # netloc is set for relative paths
+            self._path = os.path.join(
+                os.getcwd(),
+                parsed_url.netloc.lstrip('/'),
+                parsed_url.path.lstrip('/')
+            )
+        else:
+            self._path = parsed_url.path
         self._path = os.path.join(
             '/',
             parsed_url.netloc or os.getcwd(),
             parsed_url.path.lstrip('/')
         )
-        print(self.__class__.__name__)
-        print(
-            '/',
-            parsed_url.netloc or os.getcwd(),
-            parsed_url.path.lstrip('/')
-        )
-        if ';' in self._path:
-            self._path, parameters = parsed_url.path.split(';', 1)
-            parameters = dict(param.split('=', 1) for param in parameters.split('&'))
-        else:
-            self._path, parameters = parsed_url.path, {}
+        if ';' in self._path:  # file URI does not accept parameter
+            raise ValueError('URI contains parameter(s)')  # ...;foo=bar
+        parameters = self._parse_query(parsed_url.query)
         self._pickle_protocol = int(parameters.pop(
             'pickleprotocol',
             pickle.HIGHEST_PROTOCOL
@@ -69,8 +69,8 @@ class FileBucketStore(base_store.BaseBucketStore):
             if os.path.exists(os.path.dirname(self._path))
             else 0o777
         ))
-        if parameters:
-            raise ValueError('Unrecognized parameter(s) %s' % list(parameters.keys()))
+        if parameters:  # file URI does not accept leftover queries
+            raise ValueError('Unrecognized URI query parameter(s) %s' % list(parameters.keys()))  # ...?foo=bar
 
     def _get_bucket_path(self, bucket_key):
         return self._path + bucket_key + '.pkl'

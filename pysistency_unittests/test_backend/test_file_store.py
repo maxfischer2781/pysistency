@@ -8,7 +8,7 @@ from pysistency.backend import file_store
 class TestFileBucketStore(unittest.TestCase):
     def setUp(self):
         self.temp_dir = tempfile.TemporaryDirectory()
-        self.store_uri = 'file://' + os.path.abspath(self.temp_dir.name).strip('/') + '/'
+        self.store_uri = 'file://' + os.path.abspath(self.temp_dir.name).rstrip('/') + '/'
 
     def tearDown(self):
         self.temp_dir.cleanup()
@@ -16,12 +16,12 @@ class TestFileBucketStore(unittest.TestCase):
     def test_store_uri(self):
         # recognized parameter
         self.assertEqual(
-            file_store.FileBucketStore(store_uri=self.store_uri + ';pickleprotocol=0')._pickle_protocol,
+            file_store.FileBucketStore(store_uri=self.store_uri + '?pickleprotocol=0')._pickle_protocol,
             0
         )
         # unrecognized parameter
         with self.assertRaises(ValueError):
-            file_store.FileBucketStore(store_uri=self.store_uri + ';barfoo=0')
+            file_store.FileBucketStore(store_uri=self.store_uri + '?barfoo=0')
 
     def test_bucket_store(self):
         bucket_store = file_store.FileBucketStore(store_uri=self.store_uri)
