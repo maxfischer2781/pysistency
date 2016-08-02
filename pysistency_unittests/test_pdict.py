@@ -228,6 +228,10 @@ class DictTestcases(unittest.TestCase):
                 self.assertEqual(test_target[key], value)
 
 
+def _pdict_uri(path):
+    return path.rstrip('/') + '/'
+
+
 class TestPythonDict(DictTestcases):
     """Test for consistency with regular dict"""
     def setUp(self):
@@ -241,7 +245,7 @@ class TestPersistentDict(DictTestcases):
         self.persistent_paths = [tempfile.TemporaryDirectory()]
         self.test_objects = [
             pysistency.pdict.PersistentDict(
-                store_uri=self.persistent_paths[0].name
+                store_uri=_pdict_uri(self.persistent_paths[0].name),
             )
         ]
 
@@ -253,7 +257,7 @@ class TestPersistentDictSalted(DictTestcases):
         self.persistent_paths = [tempfile.TemporaryDirectory() for _ in range(salt_count)]
         self.test_objects = [
             pysistency.pdict.PersistentDict(
-                store_uri=self.persistent_paths[idx].name,
+                store_uri=_pdict_uri(self.persistent_paths[idx].name),
                 bucket_salt=random.randint(0, 1024*1024*1024)
             )
             for idx in range(salt_count)
@@ -267,7 +271,7 @@ class TestPersistentDictBucketCount(DictTestcases):
         self.persistent_paths = [tempfile.TemporaryDirectory() for _ in range(bucket_exponential)]
         self.test_objects = [
             pysistency.pdict.PersistentDict(
-                store_uri=self.persistent_paths[idx].name,
+                store_uri=_pdict_uri(self.persistent_paths[idx].name),
                 bucket_count=2**(idx+1)
             )
             for idx in range(bucket_exponential)
@@ -281,7 +285,7 @@ class TestPersistentDictCacheSize(DictTestcases):
         self.persistent_paths = [tempfile.TemporaryDirectory() for _ in range(len(cache_size))]
         self.test_objects = [
             pysistency.pdict.PersistentDict(
-                store_uri=self.persistent_paths[idx].name,
+                store_uri=_pdict_uri(self.persistent_paths[idx].name),
                 cache_size=cache_size[idx]
             )
             for idx in range(len(cache_size))
@@ -294,7 +298,7 @@ class TestPersistentDictCacheKeys(DictTestcases):
         self.persistent_paths = [tempfile.TemporaryDirectory()]
         self.test_objects = [
             pysistency.pdict.PersistentDict(
-                store_uri=self.persistent_paths[0].name,
+                store_uri=_pdict_uri(self.persistent_paths[0].name),
                 cache_keys=False
             )
         ]
