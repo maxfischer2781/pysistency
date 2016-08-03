@@ -421,6 +421,23 @@ class PersistentDict(object):
             item = default
         return item
 
+    def popitem(self):
+        """
+        Remove and return an arbitrary (key, value) pair from the dictionary.
+
+        popitem() is useful to destructively iterate over a dictionary, as
+        often used in set algorithms. If the dictionary is empty, calling
+        popitem() raises a KeyError.
+
+        :raises KeyError: if no items exists and no default is given
+        """
+        try:
+            key = next(iter(self))
+        except StopIteration:
+            raise KeyError
+        else:
+            return key, self.pop(key)
+
     def setdefault(self, key, default=None):
         """
         If key is in the dictionary, return its value. If not, insert key with a
