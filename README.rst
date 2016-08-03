@@ -7,7 +7,7 @@ Python containers with persistency
 |landscape| |travis| |codecov|
 
 `pysistency` provides clones of standard containers backed by persistent data
-storage. These containers allow working with data too large for memory, and to
+storage. These containers allow to wrk with data too large for memory, and to
 seamlessly keep data across program executions.
 
 .. |landscape| image:: https://landscape.io/github/maxfischer2781/pysistency/master/landscape.svg?style=flat
@@ -28,8 +28,10 @@ seamlessly keep data across program executions.
 Containers
 ==========
 
-================ ===========================================
-Python           Pysistency
-================ ===========================================
-:py:class:`dict` :py:class:`pysistency.pdict.PersistentDict`
-================ ===========================================
+================ =========================================== ============
+Python           Pysistency                                  Status
+================ =========================================== ============
+:py:class:`dict` :py:class:`pysistency.pdict.PersistentDict` Stable
+================ =========================================== ============
+:py:class:`list` :py:class:`pysistency.plist.PersistentList` Experimental
+================ =========================================== ============
