@@ -155,6 +155,7 @@ class DictTestcases(unittest.TestCase):
 
     def test_dict_update(self):
         kv_dict = dict(self.key_values)
+        str_kv_dict = {key:value for key, value in kv_dict.items() if isinstance(key, str)}
         # test update
         for test_target in self.test_objects:
             # assert empty
@@ -167,6 +168,11 @@ class DictTestcases(unittest.TestCase):
             # update with iterable
             test_target.update(self.key_values)
             self.assertEqual(len(test_target), len(self.key_values))
+            test_target.clear()
+            self.assertEqual(len(test_target), 0)
+            # update with kwargs
+            test_target.update(**str_kv_dict)
+            self.assertEqual(len(test_target), len(str_kv_dict))
 
     def test_get(self):
         kv_dict = dict(self.key_values)
