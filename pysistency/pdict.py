@@ -530,7 +530,7 @@ class PersistentDict(object):
 
         :note: This will return a ``dict``, not a :py:class:`~.PersistentDict`.
         """
-        return dict(self.iteritems())
+        return dict(self.items())
 
     def __repr__(self):
         return "%s(bucket_store=%r, bucket_count=%r, cache_size=%r, cache_keys=%r, items={%s})" % (
