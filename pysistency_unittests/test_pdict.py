@@ -115,43 +115,71 @@ class DictTestcases(unittest.TestCase):
             for key, value in self.key_values:
                 self.assertFalse(key in test_target)
 
-    def test_container_iteration(self):
+    def test_container_views_raw(self):
         kv_dict = dict(self.key_values)
-        kv_keys = kv_dict.keys()
-        kv_values = kv_dict.values()
-        kv_items = kv_dict.items()
         for test_target in self.test_objects:
             test_target.update(kv_dict)
         # implicit
         for test_target in self.test_objects:
+            self.assertEqual(len(kv_dict), len(test_target))
             for key in test_target:
                 self.assertTrue(key in test_target)
                 self.assertTrue(key in kv_dict)
                 self.assertEqual(test_target[key], kv_dict[key])
             self.assertFalse(self.no_key_value[0] in test_target)
-        # views
+
+    def test_container_views_keys(self):
+        kv_dict = dict(self.key_values)
         for test_target in self.test_objects:
+            test_target.update(kv_dict)
+        kv_keys = kv_dict.keys()
+        for test_target in self.test_objects:
+            self.assertEqual(len(kv_dict), len(test_target))
             test_keys = test_target.keys()
+            self.assertEqual(len(kv_keys), len(test_keys))
             for key in test_keys:
                 self.assertTrue(key in test_keys)
                 self.assertTrue(key in kv_keys)
                 self.assertEqual(test_target[key], kv_dict[key])
             self.assertFalse(self.no_key_value[0] in test_keys)
             self.assertFalse(self.no_key_value[0] in kv_keys)
+
+    def test_container_views_values(self):
+        kv_dict = dict(self.key_values)
         for test_target in self.test_objects:
+            test_target.update(kv_dict)
+        kv_values = kv_dict.values()
+        for test_target in self.test_objects:
+            self.assertEqual(len(kv_dict), len(test_target))
             test_values = test_target.values()
+            self.assertEqual(len(kv_values), len(test_values))
             for value in test_values:
                 self.assertTrue(value in test_values)
                 self.assertTrue(value in kv_values)
             self.assertFalse(self.no_key_value[1] in test_values)
             self.assertFalse(self.no_key_value[1] in kv_values)
+
+    def test_container_views_items(self):
+        kv_dict = dict(self.key_values)
         for test_target in self.test_objects:
+            test_target.update(kv_dict)
+        kv_items = kv_dict.items()
+        for test_target in self.test_objects:
+            self.assertEqual(len(kv_dict), len(test_target))
             test_items = test_target.items()
+            self.assertEqual(len(kv_items), len(test_items))
             for item in test_items:
                 self.assertTrue(item in test_items)
                 self.assertTrue(item in kv_items)
+            # key and value not in dict
             self.assertFalse(self.no_key_value in test_items)
             self.assertFalse(self.no_key_value in kv_items)
+            # value not in dict
+            self.assertFalse((self.key_values[0], self.no_key_value[1]) in test_items)
+            self.assertFalse((self.key_values[0], self.no_key_value[1]) in kv_items)
+            # not a tuple
+            self.assertFalse(self.no_key_value[0] in test_items)
+            self.assertFalse(self.no_key_value[0] in kv_items)
 
     def test_dict_update(self):
         kv_dict = dict(self.key_values)
