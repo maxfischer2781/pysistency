@@ -183,7 +183,7 @@ class DictTestcases(unittest.TestCase):
 
     def test_dict_update(self):
         kv_dict = dict(self.key_values)
-        str_kv_dict = {key:value for key, value in kv_dict.items() if isinstance(key, str)}
+        str_kv_dict = {key: value for key, value in kv_dict.items() if isinstance(key, str)}
         # test update
         for test_target in self.test_objects:
             # assert empty
@@ -237,6 +237,13 @@ class DictTestcases(unittest.TestCase):
             for key in kv_dict:
                 self.assertEqual(test_target[key], kv_dict[key])
             self.assertEqual(test_target.setdefault(self.no_key_value[0], default_value), default_value)
+
+    def test_copy(self):
+        kv_dict = dict(self.key_values)
+        for test_target in self.test_objects:
+            test_target.update(kv_dict)
+            test_copy = test_target.copy()
+            self.assertEqual(kv_dict, test_copy)
 
     def test_persist(self):
         kv_dict = dict(self.key_values)
