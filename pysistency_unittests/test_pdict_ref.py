@@ -4,6 +4,7 @@ Replication of official dict tests for pdict
 :see: :py:mod:`test.test_dict`
 """
 import tempfile
+import random
 
 from test import mapping_tests
 
@@ -14,7 +15,7 @@ def _pdict_uri(path):
     return path.rstrip('/') + '/'
 
 
-class GeneralMappingTests(mapping_tests.BasicTestMappingProtocol):
+class DefaultMappingTests(mapping_tests.BasicTestMappingProtocol):
     #: arguments for creating persistend dict before filling it
     type2test_mockup_params = ((), {})
 
@@ -36,4 +37,39 @@ class GeneralMappingTests(mapping_tests.BasicTestMappingProtocol):
     def tearDown(self):
         for temp_dir in self.persistent_paths:
             temp_dir.cleanup()
+
+
+class SaltedMappingTests(DefaultMappingTests):
+    #: arguments for creating persistend dict before filling it
+    type2test_mockup_params = ((), {'bucket_salt': random.randint(0, 1024*1024*1024)})
+
+
+class SmallMappingTests(DefaultMappingTests):
+    #: arguments for creating persistend dict before filling it
+    type2test_mockup_params = ((), {'bucket_count': 1})
+
+
+class BigMappingTests(DefaultMappingTests):
+    #: arguments for creating persistend dict before filling it
+    type2test_mockup_params = ((), {'bucket_count': 1024})
+
+
+class NoCacheMappingTests(DefaultMappingTests):
+    #: arguments for creating persistend dict before filling it
+    type2test_mockup_params = ((), {'cache_size': 0})
+
+
+class SmallCacheMappingTests(DefaultMappingTests):
+    #: arguments for creating persistend dict before filling it
+    type2test_mockup_params = ((), {'cache_size': 1})
+
+
+class BigCacheMappingTests(DefaultMappingTests):
+    #: arguments for creating persistend dict before filling it
+    type2test_mockup_params = ((), {'cache_size': 128})
+
+
+class KeyCacheMappingTests(DefaultMappingTests):
+    #: arguments for creating persistend dict before filling it
+    type2test_mockup_params = ((), {'cache_keys': False})
 
