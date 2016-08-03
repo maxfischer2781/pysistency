@@ -356,7 +356,7 @@ class PersistentDict(object):
                 self.bucket_count == other.bucket_count and
                 self.bucket_salt == other.bucket_salt
             ):
-                    return True
+                return True
             # different keys, cannot be equal
             if self._keys_cache is not None and self._keys_cache != other._keys_cache:
                 return False
@@ -365,10 +365,12 @@ class PersistentDict(object):
             return False
         # no fast path resolved...
         # try a not-quite slow path
-        if len(self)//self.bucket_count <= self.cache_size:  # we're probably in memory already, just rewrap content
+        if len(self) // self.bucket_count <= self.cache_size:  # we're probably in memory already, just rewrap content
             return self.copy() == other
         return all(other[key] == value for key, value in self.items())
 
+    def __ne__(self, other):
+        return not self == other
 
     def __iter__(self):
         """:see: :py:meth:`~.PersistentDict.keys`"""
