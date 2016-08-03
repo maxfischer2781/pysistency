@@ -9,26 +9,32 @@ import pysistency.pdict
 
 class DictTestcases(unittest.TestCase):
     """Tests for dictionary like objects"""
+    test_multiplicity = 256
+
     def setUp(self):
         self.persistent_paths = []
         self.test_objects = []
         self.key_values = []
         # numerical
         self.key_values += [
-            ((idx + random.random()) * 1024, idx) for idx in range(256)
+            ((idx + random.random()) * self.test_multiplicity, idx)
+            for idx in range(self.test_multiplicity)
             ]
         # string
         self.key_values += [
-            (str((idx + random.random()) * 1024), str(idx+256)) for idx in range(256)
+            (str((idx + random.random()) * self.test_multiplicity), str(idx+256))
+            for idx in range(self.test_multiplicity)
             ]
         # bytes
         self.key_values += [
-            (str((idx + random.random()) * 1024).encode(), str(idx+512).encode()) for idx in range(256)
-            ]
+            (str((idx + random.random()) * self.test_multiplicity).encode(), str(idx+512).encode())
+            for idx in range(self.test_multiplicity)
+        ]
         # datetime
         now = time.time()
         self.key_values += [
-            (datetime.datetime.fromtimestamp(now + idx), datetime.datetime.fromtimestamp(now + idx)) for idx in range(256)
+            (datetime.datetime.fromtimestamp(now + idx), datetime.datetime.fromtimestamp(now + idx))
+            for idx in range(self.test_multiplicity)
             ]
         self.no_key_value = (-999, -999)
 
@@ -251,6 +257,8 @@ class TestPersistentDict(DictTestcases):
 
 
 class TestPersistentDictSalted(DictTestcases):
+    test_multiplicity = 64
+
     def setUp(self):
         DictTestcases.setUp(self)
         salt_count = 8
