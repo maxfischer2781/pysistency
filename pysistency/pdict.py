@@ -248,7 +248,7 @@ class PersistentDict(object):
 
     def _discard_bucket_key(self, bucket_key):
         if bucket_key in self._bucket_keys:
-            self._bucket_keys.add(bucket_key)
+            self._bucket_keys.remove(bucket_key)
             self._store_head()
 
     # cache management
