@@ -1,3 +1,6 @@
+"""
+Tests for the Persistent Dictionary
+"""
 import unittest
 import random
 import tempfile
