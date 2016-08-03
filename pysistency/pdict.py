@@ -632,4 +632,5 @@ class PersistentDictItemsView(PersistentDictView):
             key, value = item
         except TypeError:  # not a tuple
             return False
-        return key in self._pdict and any(value == element[1] for element in self)
+        else:
+            return key in self._pdict and any(value == element[1] for element in self)
