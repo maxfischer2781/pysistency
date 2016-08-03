@@ -28,6 +28,9 @@ class TestFileBucketStore(unittest.TestCase):
         # unrecognized parameter
         with self.assertRaises(ValueError):
             file_store.FileBucketStore(store_uri=self.store_uri + '?barfoo=0')
+        # wrong parameter type
+        with self.assertRaises(ValueError):
+            file_store.FileBucketStore(store_uri=self.store_uri + ';barfoo=0')
 
     def test_bucket_store(self):
         bucket_store = file_store.FileBucketStore(store_uri=self.store_uri)
