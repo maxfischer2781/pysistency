@@ -35,7 +35,8 @@ def hashkey_fast(obj, salt=0):
             return zlib.adler32(obj.encode(), salt) & 0xffffffff
         elif obj.__class__ is bytes:
             return zlib.adler32(obj, salt) & 0xffffffff
-        elif obj.__class__ is datetime_type:
+        # must be datetime_type
+        else:
             return zlib.adler32(str(obj).encode(), salt) & 0xffffffff
     return hash(obj) & 0xffffffff
 hashkey_fast.types = {str, bytes, datetime_type}
