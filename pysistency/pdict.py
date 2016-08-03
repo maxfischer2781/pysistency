@@ -1,5 +1,5 @@
 from weakref import WeakValueDictionary
-from collections import deque
+from collections import deque, abc
 import math
 
 from pysistency.utilities.std_clone import inherit_docstrings
@@ -346,6 +346,29 @@ class PersistentDict(object):
         return bool(self._bucket_keys)
 
     __nonzero__ = __bool__
+
+    def __eq__(self, other):
+        # other is pdict, try some fast comparisons
+        if isinstance(other, PersistentDict):
+            # we are the same store
+            if (
+                self._bucket_store == other._bucket_store and
+                self.bucket_count == other.bucket_count and
+                self.bucket_salt == other.bucket_salt
+            ):
+                    return True
+            # different keys, cannot be equal
+            if self._keys_cache is not None and self._keys_cache != other._keys_cache:
+                return False
+        # not a mapping, cannot be equal
+        elif not isinstance(other, abc.Mapping):
+            return False
+        # no fast path resolved...
+        # try a not-quite slow path
+        if len(self)//self.bucket_count <= self.cache_size:  # we're probably in memory already, just rewrap content
+            return self.copy() == other
+        return all(other[key] == value for key, value in self.items())
+
 
     def __iter__(self):
         """:see: :py:meth:`~.PersistentDict.keys`"""
