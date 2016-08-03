@@ -3,6 +3,7 @@ Replication of official dict tests for pdict
 
 :see: :py:mod:`test.test_dict`
 """
+import unittest
 import tempfile
 import random
 
@@ -15,7 +16,8 @@ def _pdict_uri(path):
     return path.rstrip('/') + '/'
 
 
-class DefaultMappingTests(mapping_tests.BasicTestMappingProtocol):
+class TestTypeProvider(unittest.TestCase):
+    """Mixin providing dict like constructor to pdict"""
     #: arguments for creating persistend dict before filling it
     type2test_mockup_params = ((), {})
 
@@ -37,6 +39,10 @@ class DefaultMappingTests(mapping_tests.BasicTestMappingProtocol):
     def tearDown(self):
         for temp_dir in self.persistent_paths:
             temp_dir.cleanup()
+
+
+class DefaultMappingTests(TestTypeProvider, mapping_tests.BasicTestMappingProtocol):
+    """Mapping Tests"""
 
 
 class SaltedMappingTests(DefaultMappingTests):
