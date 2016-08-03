@@ -354,3 +354,16 @@ class TestPersistentDictCacheKeys(DictTestcases):
                 cache_keys=False
             )
         ]
+
+
+class TestPersistentDictPureCacheKeys(DictTestcases):
+    def setUp(self):
+        DictTestcases.setUp(self)
+        self.persistent_paths = [tempfile.TemporaryDirectory()]
+        self.test_objects = [
+            pysistency.pdict.PersistentDict(
+                store_uri=_pdict_uri(self.persistent_paths[0].name),
+                cache_keys=False,
+                cache_size=0,
+            )
+        ]

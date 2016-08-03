@@ -73,3 +73,7 @@ class KeyCacheMappingTests(DefaultMappingTests):
     #: arguments for creating persistend dict before filling it
     type2test_mockup_params = ((), {'cache_keys': False})
 
+
+class PureKeyCacheMappingTests(DefaultMappingTests):
+    #: arguments for creating persistend dict before filling it
+    type2test_mockup_params = ((), {'cache_keys': False, 'cache_size': 0})
