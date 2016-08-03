@@ -27,7 +27,7 @@ class GeneralMappingTests(mapping_tests.BasicTestMappingProtocol):
             pdict = pysistency.pdict.PersistentDict(
                 store_uri=_pdict_uri(self.persistent_paths[-1].name),
                 *self.type2test_mockup_params[0],
-                **self.type2test_mockup_params[1],
+                **self.type2test_mockup_params[1]
             )
             pdict.update(*args, **kwargs)
             return pdict
