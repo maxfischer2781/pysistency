@@ -542,7 +542,7 @@ class PersistentDict(object):
             self.__repr_content(),
         )
 
-    def __repr_content(self):
+    def __repr_content(self):  # pragma: no cover
         reprs = []
         read_keys = set()
         for bucket_key in self._active_buckets.keys():
@@ -610,7 +610,7 @@ class PersistentDictValuesView(PersistentDictView):
         try:
             for item_key in self._pdict:
                 yield self._pdict[item_key]
-        except KeyError:
+        except KeyError:  # pragma: no cover
             raise RuntimeError("dictionary changed size during iteration")
 
     def __contains__(self, item):
@@ -624,7 +624,7 @@ class PersistentDictItemsView(PersistentDictView):
         try:
             for item_key in self._pdict:
                 yield item_key, self._pdict[item_key]
-        except KeyError:
+        except KeyError:  # pragma: no cover
             raise RuntimeError("dictionary changed size during iteration")
 
     def __contains__(self, item):
