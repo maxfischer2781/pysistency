@@ -28,10 +28,36 @@ seamlessly keep data across program executions.
 Containers
 ==========
 
-================ =========================================== ============
-Python           Pysistency                                  Status
-================ =========================================== ============
-:py:class:`dict` :py:class:`pysistency.pdict.PersistentDict` Stable
-================ =========================================== ============
-:py:class:`list` :py:class:`pysistency.plist.PersistentList` Experimental
-================ =========================================== ============
+Efficiently implementing each container requires code tailored to its data
+structure and usage. Each implementation is developed separately from others.
+
+================ =========================================== ==============
+Python           Pysistency                                   Status
+================ =========================================== ==============
+:py:class:`dict` :py:class:`pysistency.pdict.PersistentDict`  Stable
+================ =========================================== ==============
+:py:class:`list` :py:class:`pysistency.plist.PersistentList`  Experimental
+================ =========================================== ==============
+
+The following `Status` categories are used:
+
+**Experimental**
+    Public interfaces and data storage may change at any time. Functionality
+    is lacking.
+
+**Stable**
+    Core functionality fully implemented, data storage will remain stable.
+    Some functionality still missing.
+
+**Complete**
+    All functionality available. Internal implementation details may change.
+
+**Done**
+    All functionality available, internal implementation stable, passes all
+    applicable, official tests.
+
+Where's X?
+==========
+
+Priority for new/existing types depends mostly on ease of implementation and
+need. If you require a specific type or interface, let me know.
