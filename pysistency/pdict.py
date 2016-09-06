@@ -14,7 +14,7 @@ class DictBucket(dict):
 
 
 @inherit_docstrings(inherit_from=dict)
-class PersistentDict(object):
+class PersistentDict(abc.MutableMapping):
     """
     Mapping object that is persistently stored
 
@@ -610,53 +610,34 @@ class PersistentDict(object):
         return ",".join(reprs)
 
 
-class PersistentDictView(object):
-    """
-    View to a :py:class:`~.PersistentDict`
-
-    :type pdict: :py:class:`~.PersistentDict`
-    """
+class PersistentDictView(abc.MappingView):
+    """View to a :py:class:`~.PersistentDict`"""
     short_name = 'pdict_keys'
 
-    def __init__(self, pdict):
-        self._pdict = pdict
-
-    def __len__(self):
-        return len(self._pdict)
-
     def __bool__(self):
-        return bool(self._pdict)
-
-    def __iter__(self):
-        raise NotImplementedError
-
-    def __contains__(self, item):
-        raise NotImplementedError
+        return bool(self._mapping)
 
     def __repr__(self):
         return '%s([%s])' % (self.short_name, ', '.join(str(item) for item in self))
 
 
-class PersistentDictKeysView(PersistentDictView):
+class PersistentDictKeysView(PersistentDictView, abc.KeysView):
     short_name = 'pdict_keys'
 
     def __iter__(self):
-        return iter(self._pdict)
+        return iter(self._mapping)
 
     def __contains__(self, item):
-        return item in self._pdict
-
-    def __repr__(self):
-        return 'pdict_keys([%s])' % ', '.join(str(item) for item in self)
+        return item in self._mapping
 
 
-class PersistentDictValuesView(PersistentDictView):
+class PersistentDictValuesView(PersistentDictView, abc.ValuesView):
     short_name = 'pdict_values'
 
     def __iter__(self):
         try:
-            for item_key in self._pdict:
-                yield self._pdict[item_key]
+            for item_key in self._mapping:
+                yield self._mapping[item_key]
         except KeyError:  # pragma: no cover
             raise RuntimeError("dictionary changed size during iteration")
 
@@ -664,13 +645,13 @@ class PersistentDictValuesView(PersistentDictView):
         return any(item == element for element in self)
 
 
-class PersistentDictItemsView(PersistentDictView):
+class PersistentDictItemsView(PersistentDictView, abc.ItemsView):
     short_name = 'pdict_items'
 
     def __iter__(self):
         try:
-            for item_key in self._pdict:
-                yield item_key, self._pdict[item_key]
+            for item_key in self._mapping:
+                yield item_key, self._mapping[item_key]
         except KeyError:  # pragma: no cover
             raise RuntimeError("dictionary changed size during iteration")
 
@@ -680,4 +661,7 @@ class PersistentDictItemsView(PersistentDictView):
         except TypeError:  # not a tuple
             return False
         else:
-            return key in self._pdict and any(value == element[1] for element in self)
+            try:
+                return value == self._mapping[key]
+            except KeyError:
+                return False
