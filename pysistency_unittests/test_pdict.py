@@ -119,10 +119,20 @@ class DictTestcases(unittest.TestCase):
                 self.assertFalse(key in test_target)
 
     def test_container_eq(self):
+        half_dict = dict(self.key_values[::2])
+        rand_dict = {random.random(): random.random() for _ in range(200)}
+        super_dict = dict(self.key_values)
+        super_dict.update({
+            (idx + random.random() * self.test_multiplicity): idx
+            for idx in range(self.test_multiplicity, self.test_multiplicity * 2)
+        })
         # test empty
         for test_target in self.test_objects:
             self.assertEqual(test_target, {})
             self.assertNotEqual(test_target, {'a': 2})
+            self.assertNotEqual(test_target, half_dict)
+            self.assertNotEqual(test_target, rand_dict)
+            self.assertNotEqual(test_target, super_dict)
         # test filling
         for test_target in self.test_objects:
             test_target.update(self.key_values)
@@ -130,11 +140,17 @@ class DictTestcases(unittest.TestCase):
         # test filled
         for test_target in self.test_objects:
             self.assertNotEqual(test_target, {'a': 2})
+            self.assertNotEqual(test_target, half_dict)
+            self.assertNotEqual(test_target, rand_dict)
+            self.assertNotEqual(test_target, super_dict)
         # test emptied
         for test_target in self.test_objects:
             test_target.clear()
             self.assertEqual(test_target, {})
             self.assertNotEqual(test_target, {'a': 2})
+            self.assertNotEqual(test_target, half_dict)
+            self.assertNotEqual(test_target, rand_dict)
+            self.assertNotEqual(test_target, super_dict)
         # test not-mapping
         for test_target in self.test_objects:
             self.assertNotEqual(test_target, 1)
