@@ -1,6 +1,7 @@
 from weakref import WeakValueDictionary
 from collections import deque, abc
 import math
+import string
 
 from pysistency.utilities.std_clone import inherit_docstrings
 from pysistency.utilities.keys import hashkey, HASHKEY_HEXFMT
@@ -45,6 +46,7 @@ class PersistentDict(abc.MutableMapping):
         self._keys_cache = None
         self._bucket_cache = None
         self._cache_size = None
+        self._updating_layout = False
         # load current settings
         try:
             for attr, value in self._bucket_store.fetch_head().items():
@@ -52,6 +54,11 @@ class PersistentDict(abc.MutableMapping):
             self._update_bucket_key_fmt()
         except BucketNotFound:
             pass
+        # resume outstanding updates
+        # this is only valid but also only possible if we have an
+        # existing data structure that was being updated.
+        if self._updating_layout:
+            self.update()
         # apply new settings
         self.bucket_count = bucket_count
         self.bucket_salt = bucket_salt
@@ -77,7 +84,7 @@ class PersistentDict(abc.MutableMapping):
         self._bucket_store.store_head({
             attr: getattr(self, attr) for attr in
             # work directly on internal values, setters are called as part of init for finalization
-            ('_bucket_count', '_bucket_salt')
+            ('_bucket_count', '_bucket_salt', '_updating_layout')
         })
 
     def _bucket_fmt_digits(self, bucket_count=None):
@@ -123,7 +130,9 @@ class PersistentDict(abc.MutableMapping):
                 self._bucket_salt = value
             # TODO: allow resalting backend
             else:
-                raise NotImplementedError('Changing bucket salt not implemented yet')
+                self._bucket_salt = value
+                self._update_bucket_key_fmt()
+                self.update_layout()
         self._update_bucket_key_fmt()
 
     @property
@@ -156,7 +165,9 @@ class PersistentDict(abc.MutableMapping):
                 self._bucket_count = value
             # TODO: allow resizing backend
             else:
-                raise NotImplementedError('Changing bucket count not implemented yet')
+                self._bucket_count = value
+                self._update_bucket_key_fmt()
+                self.update_layout()
         # apply secondary settings
         self._update_bucket_key_fmt()
 
@@ -171,6 +182,8 @@ class PersistentDict(abc.MutableMapping):
         elif not value and self._keys_cache is not None:  # switch off
             self._keys_cache = None
 
+    # data placement
+    # Note: updating layouts relies on new/old bucket keys not conflicting
     def _update_bucket_key_fmt(self):
         # key: count, salt, index
         self.bucket_key_fmt = "%(bucket_count)x%(bucket_salt)s%%0%(index_digits)dx" % {
@@ -178,6 +191,51 @@ class PersistentDict(abc.MutableMapping):
             'bucket_salt': HASHKEY_HEXFMT % hashkey(self.bucket_salt, self.bucket_salt),
             'index_digits': self._bucket_fmt_digits(),
         }
+
+    def _is_current_bucket_key(self, bucket_key):
+        """Test whether `bucket_key` belongs to the currently used data layout"""
+        layout = "%(bucket_count)x%(bucket_salt)s" % {
+            'bucket_count': self.bucket_count,
+            'bucket_salt': HASHKEY_HEXFMT % hashkey(self.bucket_salt, self.bucket_salt),
+        }
+        if bucket_key.startswith(layout):
+            position = bucket_key[len(layout):]
+            if len(position) == self._bucket_fmt_digits():
+                return all(char in string.hexdigits for char in position)
+        return False
+
+    def update_layout(self):
+        """
+        Recreate the data layout
+
+        :note: This method is primarily intended for internal use when the data
+               layout *changes*. However, it does have application beyond, e.g.
+               to recover a broken layout.
+        """
+        # start an update by marking the data structure as being updated
+        # if we get interrupted, the next process may resume.
+        self._updating_layout = True
+        self._store_head()
+        # If we are resuming an update, we get both new and old buckets
+        # from the store. If a bucket is new, rewriting will not give us
+        # a benefit: it's readable and we have its data.
+        # If a bucket is old, fetch its data and write right back to us
+        # regularly. We can release old buckets since keys *must* never
+        # collide for different layouts.
+        # We don't try to optimize reading old to writing new to avoid
+        # having to make assumptions. The bucket key format should be
+        # optimized so that new and old buckets are sub/supersets.
+        for old_bucket_key in list(self._bucket_store.bucket_keys):
+            if not self._is_current_bucket_key(old_bucket_key):
+                bucket_data = self._fetch_bucket(old_bucket_key)
+                self.update(bucket_data)
+                self._bucket_store.free_bucket(old_bucket_key)
+        # reset bucket caches - do not reset active item and key cache, they remain valid
+        self._bucket_cache = deque(maxlen=self.cache_size)
+        self._active_buckets = type(self._active_buckets)()
+        # mark done
+        self._updating_layout = False
+        self._store_head()
 
     # bucket management
     def _bucket_key(self, key):
