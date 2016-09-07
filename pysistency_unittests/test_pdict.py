@@ -249,6 +249,8 @@ class DictTestcases(unittest.TestCase):
             self.assertEqual(kv_dict, test_copy)
 
     def test_persist(self):
+        if not all(isinstance(test_target, pysistency.pdict.PersistentDict) for test_target in self.test_objects):
+            raise unittest.SkipTest('not applicable to non-persistent objects')
         kv_dict = dict(self.key_values)
         # test update
         for test_target in self.test_objects:
@@ -276,6 +278,38 @@ class DictTestcases(unittest.TestCase):
         for test_target in self.test_objects:
             for key, value in kv_dict.items():
                 self.assertEqual(test_target[key], value)
+
+    def test_update_layout(self):
+        if not all(hasattr(test_target, 'update_layout') for test_target in self.test_objects):
+            raise unittest.SkipTest('not applicable to non-persistent objects')
+        kv_dict = dict(self.key_values)
+        # test update
+        for test_target in self.test_objects:
+            test_target.update(kv_dict)
+            self.assertEqual(len(test_target), len(self.key_values))
+        # destroy and recreate
+        for test_target in self.test_objects:
+            if not isinstance(test_target, pysistency.pdict.PersistentDict):
+                continue
+            # noop update
+            test_target.update_layout()
+            self.assertEqual(test_target, kv_dict)
+            # double
+            test_target.bucket_count = test_target.bucket_count * 2
+            self.assertEqual(test_target, kv_dict)
+            # half
+            test_target.bucket_count = test_target.bucket_count // 2
+            self.assertEqual(test_target, kv_dict)
+            # resalt
+            test_target.bucket_salt = random.randint(1024, 4096)
+            self.assertEqual(test_target, kv_dict)
+            test_target.bucket_salt = 0
+            self.assertEqual(test_target, kv_dict)
+            # resize fixed
+            test_target.bucket_count = 256
+            self.assertEqual(test_target, kv_dict)
+            test_target.bucket_count = 1
+            self.assertEqual(test_target, kv_dict)
 
 
 def _pdict_uri(path):
