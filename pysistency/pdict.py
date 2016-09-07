@@ -173,7 +173,7 @@ class PersistentDict(abc.MutableMapping):
 
     def _update_bucket_key_fmt(self):
         # key: count, salt, index
-        self.bucket_key_fmt = "pdictbkt_%(bucket_count)x%(bucket_salt)s%%0%(index_digits)dx" % {
+        self.bucket_key_fmt = "%(bucket_count)x%(bucket_salt)s%%0%(index_digits)dx" % {
             'bucket_count': self.bucket_count,
             'bucket_salt': HASHKEY_HEXFMT % hashkey(self.bucket_salt, self.bucket_salt),
             'index_digits': self._bucket_fmt_digits(),
