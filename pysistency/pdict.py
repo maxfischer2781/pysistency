@@ -407,7 +407,7 @@ class PersistentDict(abc.MutableMapping):
                 return False
         # not a mapping, cannot be equal
         elif not isinstance(other, abc.Mapping):
-            return False
+            return NotImplemented
         # no fast path resolved...
         # try a not-quite slow path
         if len(self) // self.bucket_count <= self.cache_size:  # we're probably in memory already, just rewrap content
