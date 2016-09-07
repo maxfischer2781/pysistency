@@ -118,6 +118,32 @@ class DictTestcases(unittest.TestCase):
             for key, value in self.key_values:
                 self.assertFalse(key in test_target)
 
+    def test_container_eq(self):
+        # test empty
+        for test_target in self.test_objects:
+            self.assertEqual(test_target, {})
+            self.assertNotEqual(test_target, {'a': 2})
+        # test filling
+        for test_target in self.test_objects:
+            test_target.update(self.key_values)
+            self.assertEqual(bool(test_target), True)
+        # test filled
+        for test_target in self.test_objects:
+            self.assertNotEqual(test_target, {'a': 2})
+        # test emptied
+        for test_target in self.test_objects:
+            test_target.clear()
+            self.assertEqual(test_target, {})
+            self.assertNotEqual(test_target, {'a': 2})
+        # test not-mapping
+        for test_target in self.test_objects:
+            self.assertNotEqual(test_target, 1)
+            self.assertNotEqual(test_target, False)
+            self.assertNotEqual(test_target, dict)
+            self.assertNotEqual(test_target, None)
+            self.assertNotEqual(test_target, [])
+            self.assertNotEqual(test_target, set())
+
     def test_container_views_raw(self):
         kv_dict = dict(self.key_values)
         for test_target in self.test_objects:
