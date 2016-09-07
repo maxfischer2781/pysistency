@@ -412,10 +412,14 @@ class PersistentDict(abc.MutableMapping):
         # try a not-quite slow path
         if len(self) // self.bucket_count <= self.cache_size:  # we're probably in memory already, just rewrap content
             return self.copy() == other
-        try:
-            return all(other[key] == value for key, value in self.items())
-        except KeyError:
-            return False
+        # len defines the number of unique keys. If other has *all* our
+        # keys, it cannot also have others if its len is the same as ours
+        if len(self) == len(other):
+            try:
+                return all(other[key] == value for key, value in self.items())
+            except KeyError:
+                return False
+        return False
 
     def __ne__(self, other):
         return not self == other
