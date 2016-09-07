@@ -312,11 +312,11 @@ class DictTestcases(unittest.TestCase):
         if not all(hasattr(test_target, 'update_layout') for test_target in self.test_objects):
             raise unittest.SkipTest('not applicable to non-persistent objects')
         kv_dict = dict(self.key_values)
-        # test update
+        # test update content
         for test_target in self.test_objects:
             test_target.update(kv_dict)
             self.assertEqual(len(test_target), len(self.key_values))
-        # destroy and recreate
+        # update layout
         for test_target in self.test_objects:
             if not isinstance(test_target, pysistency.pdict.PersistentDict):
                 continue
@@ -339,6 +339,12 @@ class DictTestcases(unittest.TestCase):
             self.assertEqual(test_target, kv_dict)
             test_target.bucket_count = 1
             self.assertEqual(test_target, kv_dict)
+        # forbidden layout updates
+        for test_target in self.test_objects:
+            if not isinstance(test_target, pysistency.pdict.PersistentDict):
+                continue
+            with self.assertRaises(ValueError):
+                test_target.bucket_count = 0
 
 
 def _pdict_uri(path):
