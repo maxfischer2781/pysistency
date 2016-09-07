@@ -302,27 +302,30 @@ class DictTestcases(unittest.TestCase):
             test_target.update(kv_dict)
             self.assertEqual(len(test_target), len(self.key_values))
         # destroy and recreate
-        for idx, test_target in enumerate(self.test_objects):
-            if not isinstance(test_target, pysistency.pdict.PersistentDict):
-                continue
-            # clone
-            kwargs = {
-                'store_uri': test_target.store_uri,
-                'bucket_count': test_target.bucket_count,
-                'bucket_salt': test_target.bucket_salt,
-                'cache_size': test_target.cache_size,
-                'cache_keys': test_target.cache_keys,
-            }
-            test_target.flush()
-            # release
-            self.test_objects[idx] = None
-            del test_target
-            # recreate test target
-            self.test_objects[idx] = pysistency.pdict.PersistentDict(**kwargs)
-        # test content
-        for test_target in self.test_objects:
-            for key, value in kv_dict.items():
-                self.assertEqual(test_target[key], value)
+        for use_stored in (True, False):
+            for idx, test_target in enumerate(self.test_objects):
+                if not isinstance(test_target, pysistency.pdict.PersistentDict):
+                    continue
+                # clone
+                kwargs = {
+                    'store_uri': test_target.store_uri,
+                    'bucket_count': test_target.bucket_count,
+                    'bucket_salt': test_target.bucket_salt,
+                    'cache_size': test_target.cache_size,
+                    'cache_keys': test_target.cache_keys,
+                }
+                if use_stored:
+                    del kwargs['bucket_salt']
+                    del kwargs['bucket_count']
+                test_target.flush()
+                # release
+                self.test_objects[idx] = None
+                del test_target
+                # recreate test target
+                self.test_objects[idx] = pysistency.pdict.PersistentDict(**kwargs)
+                test_target = self.test_objects[idx]
+                # test content
+                self.assertEqual(test_target, kv_dict)
 
     def test_update_layout(self):
         if not all(hasattr(test_target, 'update_layout') for test_target in self.test_objects):
