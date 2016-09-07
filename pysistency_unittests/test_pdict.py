@@ -166,6 +166,7 @@ class DictTestcases(unittest.TestCase):
             self.assertEqual(len(kv_dict), len(test_target))
             test_keys = test_target.keys()
             self.assertEqual(len(kv_keys), len(test_keys))
+            self.assertEqual(bool(kv_keys), bool(test_keys))
             for key in test_keys:
                 self.assertTrue(key in test_keys)
                 self.assertTrue(key in kv_keys)
@@ -182,6 +183,7 @@ class DictTestcases(unittest.TestCase):
             self.assertEqual(len(kv_dict), len(test_target))
             test_values = test_target.values()
             self.assertEqual(len(kv_values), len(test_values))
+            self.assertEqual(bool(kv_values), bool(test_values))
             for value in test_values:
                 self.assertTrue(value in test_values)
                 self.assertTrue(value in kv_values)
@@ -197,6 +199,7 @@ class DictTestcases(unittest.TestCase):
             self.assertEqual(len(kv_dict), len(test_target))
             test_items = test_target.items()
             self.assertEqual(len(kv_items), len(test_items))
+            self.assertEqual(bool(kv_items), bool(test_items))
             for item in test_items:
                 self.assertTrue(item in test_items)
                 self.assertTrue(item in kv_items)
