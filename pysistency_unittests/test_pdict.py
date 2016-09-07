@@ -126,6 +126,7 @@ class DictTestcases(unittest.TestCase):
             (idx + random.random() * self.test_multiplicity): idx
             for idx in range(self.test_multiplicity, self.test_multiplicity * 2)
         })
+        same_size_dict = {idx: idx for idx in range(len(self.key_values))}
         # test empty
         for test_target in self.test_objects:
             self.assertEqual(test_target, {})
@@ -133,6 +134,7 @@ class DictTestcases(unittest.TestCase):
             self.assertNotEqual(test_target, half_dict)
             self.assertNotEqual(test_target, rand_dict)
             self.assertNotEqual(test_target, super_dict)
+            self.assertNotEqual(test_target, same_size_dict)
         # test filling
         for test_target in self.test_objects:
             test_target.update(self.key_values)
@@ -143,6 +145,7 @@ class DictTestcases(unittest.TestCase):
             self.assertNotEqual(test_target, half_dict)
             self.assertNotEqual(test_target, rand_dict)
             self.assertNotEqual(test_target, super_dict)
+            self.assertNotEqual(test_target, same_size_dict)
         # test emptied
         for test_target in self.test_objects:
             test_target.clear()
@@ -151,6 +154,7 @@ class DictTestcases(unittest.TestCase):
             self.assertNotEqual(test_target, half_dict)
             self.assertNotEqual(test_target, rand_dict)
             self.assertNotEqual(test_target, super_dict)
+            self.assertNotEqual(test_target, same_size_dict)
         # test not-mapping
         for test_target in self.test_objects:
             self.assertNotEqual(test_target, 1)
