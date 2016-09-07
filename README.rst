@@ -61,3 +61,10 @@ Where's X?
 
 Priority for new/existing types depends mostly on ease of implementation and
 need. If you require a specific type or interface, let me know.
+
+Backends
+========
+
+The containers of `pysistency` rely on backends to store data. This allows
+switching the storage backend for each container. Currently, there is only
+one backend: a file-based backend using `pickle`.
