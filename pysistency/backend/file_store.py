@@ -88,7 +88,7 @@ class FileBucketStore(base_store.BaseBucketStore):
         except base_store.BucketNotFound:
             record = {}
         self.bucket_keys = record.get('bucket_keys', set())
-        self._stores_head = record.get('bucket_keys', False)
+        self._stores_head = record.get('_stores_head', False)
         if '_pickle_protocol' in record and self._pickle_protocol is not NOTSET:
             # resolve conflicting setting by rewriting buckets
             if record['_pickle_protocol'] != self._pickle_protocol:

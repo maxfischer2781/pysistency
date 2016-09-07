@@ -48,12 +48,13 @@ class BaseBucketStore(object):
     uri_query_options = {}
 
     def __init__(self, store_uri):
-        self._store_uri = None
-        self.store_uri = store_uri
         #: whether a container's head is stored
         self._stores_head = False
         #: buckets *currently* provided by this store, exlucing head and record
         self.bucket_keys = set()
+        # setting store_uri will trigger actual initialisation
+        self._store_uri = None
+        self.store_uri = store_uri
 
     def __repr__(self):
         return '%s(store_uri=%r)' % (self.__class__.__qualname__, self.store_uri)
