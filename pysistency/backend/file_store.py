@@ -4,6 +4,8 @@ try:
 except ImportError:
     import pickle
 
+from pysistency.utilities.constants import NOTSET
+
 from . import base_store
 
 
@@ -70,24 +72,73 @@ class FileBucketStore(base_store.BaseBucketStore):
     def _get_bucket_path(self, bucket_key):
         return self._path + bucket_key + '.pkl'
 
-    def free_head(self):
-        return self.free_bucket(bucket_key='_header')
+    def _store_bucket(self, bucket_key, bucket):
+        with open(self._get_bucket_path(bucket_key=bucket_key), 'wb') as bucket_file:
+            pickle.dump(bucket, bucket_file)
 
-    def fetch_head(self):
-        return self.fetch_bucket(bucket_key='_header')
-
-    def store_head(self, head):
-        return self.store_bucket(bucket_key='_header', bucket=head)
-
-    def free_bucket(self, bucket_key):
+    def _free_bucket(self, bucket_key):
         try:
             os.unlink(self._get_bucket_path(bucket_key=bucket_key))
         except FileNotFoundError:
             raise base_store.BucketNotFound
 
+    def _load_record(self):
+        try:
+            record = self.fetch_bucket('record')
+        except base_store.BucketNotFound:
+            record = {}
+        self.bucket_keys = record.get('bucket_keys', set())
+        self._stores_head = record.get('bucket_keys', False)
+        if '_pickle_protocol' in record and self._pickle_protocol is not NOTSET:
+            # resolve conflicting setting by rewriting buckets
+            if record['_pickle_protocol'] != self._pickle_protocol:
+                for bucket_key in self.bucket_keys:
+                    self.store_bucket(bucket_key, self.fetch_bucket(bucket_key))
+        elif '_pickle_protocol' not in record and self._pickle_protocol is NOTSET:
+            # default if none set
+            self._pickle_protocol = pickle.HIGHEST_PROTOCOL
+        elif '_pickle_protocol' in record:
+            self._pickle_protocol = record['_pickle_protocol']
+
+    def _store_record(self):
+        if self.bucket_keys or self._stores_head:
+            self._store_bucket(
+                'record',
+                {
+                    attr: getattr(self, attr) for attr in
+                    ('bucket_keys', '_pickle_protocol', '_stores_head')
+                }
+            )
+        else:
+            # free our record if we don't actually hold data
+            try:
+                self._free_bucket('record')
+            except base_store.BucketNotFound:
+                pass
+
+    def free_head(self):
+        self._free_bucket(bucket_key='head')
+        self._stores_head = False
+        self._store_record()
+
+    def fetch_head(self):
+        return self.fetch_bucket(bucket_key='head')
+
+    def store_head(self, head):
+        self._store_bucket(bucket_key='head', bucket=head)
+        self._stores_head = True
+        self._store_record()
+
+    def free_bucket(self, bucket_key):
+        self._free_bucket(bucket_key)
+        self.bucket_keys.discard(bucket_key)
+        self._store_record()
+
     def store_bucket(self, bucket_key, bucket):
-        with open(self._get_bucket_path(bucket_key=bucket_key), 'wb') as bucket_file:
-            pickle.dump(bucket, bucket_file)
+        self._store_bucket(bucket_key, bucket)
+        if bucket_key not in self.bucket_keys:
+            self.bucket_keys.add(bucket_key)
+            self._store_record()
 
     def fetch_bucket(self, bucket_key):
         try:
