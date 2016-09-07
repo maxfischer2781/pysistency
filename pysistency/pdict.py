@@ -41,7 +41,6 @@ class PersistentDict(abc.MutableMapping):
         # set empty fields
         self._bucket_count = None
         self._bucket_salt = None
-        self._bucket_keys = set()
         self.bucket_key_fmt = None
         self._keys_cache = None
         self._bucket_cache = None
@@ -78,7 +77,7 @@ class PersistentDict(abc.MutableMapping):
         self._bucket_store.store_head({
             attr: getattr(self, attr) for attr in
             # work directly on internal values, setters are called as part of init for finalization
-            ('_bucket_count', '_bucket_salt', '_bucket_keys')
+            ('_bucket_count', '_bucket_salt')
         })
 
     def _bucket_fmt_digits(self, bucket_count=None):
@@ -235,21 +234,9 @@ class PersistentDict(abc.MutableMapping):
                 return
         if bucket:
             self._bucket_store.store_bucket(bucket_key=bucket_key, bucket=bucket)
-            self._add_bucket_key(bucket_key)
         # free empty buckets
         else:
             self._bucket_store.free_bucket(bucket_key)
-            self._discard_bucket_key(bucket_key)
-
-    def _add_bucket_key(self, bucket_key):
-        if bucket_key not in self._bucket_keys:
-            self._bucket_keys.add(bucket_key)
-            self._store_head()
-
-    def _discard_bucket_key(self, bucket_key):
-        if bucket_key in self._bucket_keys:
-            self._bucket_keys.remove(bucket_key)
-            self._store_head()
 
     # cache management
     # Item cache
@@ -335,7 +322,7 @@ class PersistentDict(abc.MutableMapping):
             length += len(self._active_buckets[bucket_key])
             read_buckets.add(bucket_key)
         # pull in remaining buckets
-        for bucket_key in self._bucket_keys:
+        for bucket_key in self._bucket_store.bucket_keys:
             if bucket_key not in read_buckets:
                 length += len(self._fetch_bucket(bucket_key))
                 read_buckets.add(bucket_key)
@@ -343,7 +330,7 @@ class PersistentDict(abc.MutableMapping):
 
     def __bool__(self):
         # can only have items if we have buckets
-        return bool(self._bucket_keys)
+        return bool(self._bucket_store.bucket_keys)
 
     __nonzero__ = __bool__
 
@@ -381,12 +368,19 @@ class PersistentDict(abc.MutableMapping):
                 yield item_key
             read_buckets.add(bucket_key)
         # pull in all buckets
-        for bucket_key in self._bucket_keys:
-            if bucket_key not in read_buckets:
-                bucket = self._fetch_bucket(bucket_key)
-                for item_key in bucket.keys():
-                    yield item_key
-                read_buckets.add(bucket_key)
+        try:
+            for bucket_key in self._bucket_store.bucket_keys:
+                if bucket_key not in read_buckets:
+                    bucket = self._fetch_bucket(bucket_key)
+                    for item_key in bucket.keys():
+                        yield item_key
+                    read_buckets.add(bucket_key)
+        except RuntimeError:
+            # NOTE: the store's bucket key set may change size
+            #       during iteration if client code modifies
+            #       the dict. We catch and reraise to show that
+            #       it's a problem of modifying the dict.
+            raise RuntimeError('%s changed size during iteration' % self.__class__.__name__)
 
     # dictionary methods
     def get(self, key, default=None):
@@ -458,9 +452,8 @@ class PersistentDict(abc.MutableMapping):
     def clear(self):
         """Remove all items from the dictionary."""
         # clear persistent storage
-        for bucket_key in self._bucket_keys:
+        for bucket_key in list(self._bucket_store.bucket_keys):
             self._bucket_store.free_bucket(bucket_key=bucket_key)
-        self._bucket_keys = type(self._bucket_keys)()
         self._store_head()
         # reset caches
         self._bucket_cache = deque(maxlen=self.cache_size)
