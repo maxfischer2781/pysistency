@@ -2,4 +2,3 @@ coverage:
   range: "50...100"
   ignore:
     - pysistency_unittests
-    - pysistency/utilities/compat.py
