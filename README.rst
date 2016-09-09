@@ -35,7 +35,6 @@ structure and usage. Each implementation is developed separately from others.
 Python           Pysistency                                   Status
 ================ =========================================== ==============
 :py:class:`dict` :py:class:`pysistency.pdict.PersistentDict`  Stable
-================ =========================================== ==============
 :py:class:`list` :py:class:`pysistency.plist.PersistentList`  Experimental
 ================ =========================================== ==============
 
