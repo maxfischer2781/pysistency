@@ -56,10 +56,10 @@ class FileBucketStore(base_store.BaseBucketStore):
         if ';' in self._path:  # file URI does not accept parameter
             raise ValueError('URI contains parameter(s)')  # ...;foo=bar
         parameters = self._parse_query(parsed_url.query)
-        self._pickle_protocol = int(parameters.pop(
-            'pickleprotocol',
-            pickle.HIGHEST_PROTOCOL
-        ))
+        try:
+            self._pickle_protocol = int(parameters.pop('pickleprotocol'))
+        except KeyError:
+            self._pickle_protocol = NOTSET
         self._permissions = int(parameters.pop(
             'permissions',
             (os.stat(os.path.dirname(self._path)).st_mode & 0o777)
