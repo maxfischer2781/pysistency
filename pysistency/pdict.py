@@ -576,10 +576,10 @@ class PersistentDict(abc.MutableMapping):
             # mapping types
             if hasattr(other, "items"):  # dictionary
                 updatebuckets(other.items())
-            elif hasattr(other, "keys"):  # partial dictionary
-                updatebuckets((key, other[key]) for key in other.keys())
             elif isinstance(other, abc.Mapping):
                 updatebuckets((key, other[key]) for key in other)
+            elif hasattr(other, "keys"):  # partial dictionary
+                updatebuckets((key, other[key]) for key in other.keys())
             else:  # sequence
                 updatebuckets(other)
         updatebuckets(kwargs.items())
