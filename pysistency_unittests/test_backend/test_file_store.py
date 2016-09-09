@@ -1,6 +1,7 @@
 import os
 import unittest
 import tempfile
+import pickle
 
 from pysistency.backend import file_store
 
@@ -42,3 +43,23 @@ class TestFileBucketStore(unittest.TestCase):
         bucket_store.free_head()
         with self.assertRaises(file_store.base_store.BucketNotFound):
             bucket_store.free_head()
+
+    def test_bucket_store_persists(self):
+        bucket_store = file_store.FileBucketStore(store_uri=self.store_uri)
+        bucket_store.store_head(1)
+        self.assertEqual(bucket_store.fetch_head(), 1)
+        # fetch again
+        del bucket_store
+        bucket_store = file_store.FileBucketStore(store_uri=self.store_uri)
+        self.assertEqual(bucket_store.fetch_head(), 1)
+        del bucket_store
+        # change pickle protocol gracefully
+        bucket_store = file_store.FileBucketStore(store_uri=self.store_uri + '?pickleprotocol=0')
+        self.assertEqual(bucket_store.fetch_head(), 1)
+        del bucket_store
+        bucket_store = file_store.FileBucketStore(store_uri=self.store_uri + '?pickleprotocol=%d' % pickle.HIGHEST_PROTOCOL)
+        self.assertEqual(bucket_store.fetch_head(), 1)
+        del bucket_store
+        # explicitly set same protocol
+        bucket_store = file_store.FileBucketStore(store_uri=self.store_uri + '?pickleprotocol=%d' % pickle.HIGHEST_PROTOCOL)
+        self.assertEqual(bucket_store.fetch_head(), 1)
