@@ -266,7 +266,7 @@ class PersistentDict(abc.MutableMapping):
 
     def _get_bucket(self, bucket_key):
         """
-        Return the appropriate bucket
+        Return the appropriate bucket from the store
 
         May return the cached bucket if available.
 
@@ -279,17 +279,13 @@ class PersistentDict(abc.MutableMapping):
         except KeyError:
             return self._fetch_bucket(bucket_key)
 
-    def _store_bucket(self, bucket_key, bucket=None):
+    def _store_bucket(self, bucket_key, bucket):
         """
-        Store a bucket on disk
+        Flush a bucket to the store
 
         :param bucket_key: key for the entire bucket
+        :param bucket: the bucket to store
         """
-        if bucket is None:
-            try:
-                bucket = self._active_buckets[bucket_key]
-            except KeyError:
-                return
         if bucket:
             self._bucket_store.store_bucket(bucket_key=bucket_key, bucket=bucket)
         # free empty buckets
@@ -354,7 +350,7 @@ class PersistentDict(abc.MutableMapping):
         bucket_key = self._bucket_key(key)
         bucket = self._get_bucket(bucket_key)
         del bucket[key]
-        self._store_bucket(bucket_key)
+        self._store_bucket(bucket_key, bucket)
         if self._keys_cache is not None:
             self._keys_cache.discard(key)
         self._del_cached_item(key)
@@ -560,7 +556,7 @@ class PersistentDict(abc.MutableMapping):
                 # cycle to next bucket if current one is done
                 if bucket_key != last_bucket_key:
                     if last_bucket_key is not None:
-                        self._store_bucket(last_bucket_key)
+                        self._store_bucket(last_bucket_key, bucket)
                     last_bucket_key = bucket_key
                     bucket = self._get_bucket(bucket_key)
                 # update bucket
@@ -571,7 +567,7 @@ class PersistentDict(abc.MutableMapping):
                 self._set_cached_item(key, value)
             # commit outstanding bucket, if any
             if last_bucket_key is not None:
-                self._store_bucket(last_bucket_key)
+                self._store_bucket(last_bucket_key, bucket)
         if other is not None:
             # mapping types
             if hasattr(other, "items"):  # dictionary
