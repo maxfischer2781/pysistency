@@ -227,7 +227,7 @@ class PersistentDict(abc.MutableMapping):
         # optimized so that new and old buckets are sub/supersets.
         for old_bucket_key in list(self._bucket_store.bucket_keys):
             if not self._is_current_bucket_key(old_bucket_key):
-                bucket_data = self._fetch_bucket(old_bucket_key)
+                bucket_data = self._get_bucket(old_bucket_key)
                 self.update(bucket_data)
                 self._bucket_store.free_bucket(old_bucket_key)
         # reset bucket caches - do not reset active item and key cache, they remain valid
@@ -275,9 +275,15 @@ class PersistentDict(abc.MutableMapping):
         :rtype: :py:class:`~DictBucket`
         """
         try:
-            return self._active_buckets[bucket_key]
+            bucket = self._active_buckets[bucket_key]
         except KeyError:
-            return self._fetch_bucket(bucket_key)
+            try:
+                bucket = self._bucket_store.fetch_bucket(bucket_key=bucket_key)
+            except BucketNotFound:
+                bucket = DictBucket()
+        self._active_buckets[bucket_key] = bucket
+        self._bucket_cache.appendleft(bucket)
+        return bucket
 
     def _store_bucket(self, bucket_key, bucket):
         """
@@ -372,13 +378,13 @@ class PersistentDict(abc.MutableMapping):
         # count each bucket, see 'keys' for iteration scheme
         read_buckets, length = set(), 0
         # start with the buckets we have in memory
-        for bucket_key in self._active_buckets.keys():
-            length += len(self._active_buckets[bucket_key])
+        for bucket_key, bucket in self._active_buckets.items():
+            length += len(bucket)
             read_buckets.add(bucket_key)
         # pull in remaining buckets
         for bucket_key in self._bucket_store.bucket_keys:
             if bucket_key not in read_buckets:
-                length += len(self._fetch_bucket(bucket_key))
+                length += len(self._get_bucket(bucket_key))
                 read_buckets.add(bucket_key)
         return length
 
@@ -424,15 +430,17 @@ class PersistentDict(abc.MutableMapping):
         """:see: :py:meth:`~.PersistentDict.keys`"""
         read_buckets = set()
         # start with the buckets we have in memory
-        for bucket_key in self._active_buckets.keys():
-            for item_key in self._active_buckets[bucket_key].keys():
+        # FIX: we need to actually freeze the buckets we have now, since the
+        #      weakrefs may get collected during iterations.
+        for bucket_key, bucket in list(self._active_buckets.items()):
+            for item_key in bucket.keys():
                 yield item_key
             read_buckets.add(bucket_key)
         # pull in all buckets
         try:
             for bucket_key in self._bucket_store.bucket_keys:
                 if bucket_key not in read_buckets:
-                    bucket = self._fetch_bucket(bucket_key)
+                    bucket = self._get_bucket(bucket_key)
                     for item_key in bucket.keys():
                         yield item_key
                     read_buckets.add(bucket_key)
