@@ -57,7 +57,6 @@ if __name__ == '__main__':
         ('(:envvar:)', lambda match: ' ' * len(match.group(1))),
     ]:
         long_description = re.sub(directive_re, replacement_re, long_description)
-    print(long_description)
 
     setup(
         name=package_name,
