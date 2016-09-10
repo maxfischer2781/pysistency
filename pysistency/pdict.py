@@ -248,22 +248,6 @@ class PersistentDict(abc.MutableMapping):
         """
         return self.bucket_key_fmt % (hashkey(key) % self._bucket_count)
 
-    def _fetch_bucket(self, bucket_key):
-        """
-        Return a bucket from disk or create a new one
-
-        :param bucket_key: key for the bucket
-        :return: bucket for ``bucket_key``
-        :rtype: :py:class:`~DictBucket`
-        """
-        try:
-            bucket = self._bucket_store.fetch_bucket(bucket_key=bucket_key)
-        except BucketNotFound:
-            bucket = DictBucket()
-        self._active_buckets[bucket_key] = bucket
-        self._bucket_cache.appendleft(bucket)
-        return bucket
-
     def _get_bucket(self, bucket_key):
         """
         Return the appropriate bucket from the store
