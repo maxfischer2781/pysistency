@@ -44,22 +44,48 @@ class TestFileBucketStore(unittest.TestCase):
         with self.assertRaises(file_store.base_store.BucketNotFound):
             bucket_store.free_head()
 
-    def test_bucket_store_persists(self):
+    def test_bucket_store_persists_buckets(self):
+        def setup(bucket_store):
+            bucket_store.store_bucket('foobar', 'foobar')
+
+        def test(bucket_store):
+            self.assertEqual(bucket_store.fetch_bucket('foobar'), 'foobar')
+        self._bucket_store_persists(setup=setup, test=test)
+
+    def test_bucket_store_persists_head(self):
+        def setup(bucket_store):
+            bucket_store.store_head(1)
+
+        def test(bucket_store):
+            self.assertEqual(bucket_store.fetch_head(), 1)
+        self._bucket_store_persists(setup=setup, test=test)
+
+    def test_bucket_store_persists_all(self):
+        def setup(bucket_store):
+            bucket_store.store_head(1)
+            bucket_store.store_bucket('foobar', 'foobar')
+
+        def test(bucket_store):
+            self.assertEqual(bucket_store.fetch_head(), 1)
+            self.assertEqual(bucket_store.fetch_bucket('foobar'), 'foobar')
+        self._bucket_store_persists(setup=setup, test=test)
+
+    def _bucket_store_persists(self, setup, test):
         bucket_store = file_store.FileBucketStore(store_uri=self.store_uri)
-        bucket_store.store_head(1)
-        self.assertEqual(bucket_store.fetch_head(), 1)
+        setup(bucket_store)
+        test(bucket_store)
         # fetch again
         del bucket_store
         bucket_store = file_store.FileBucketStore(store_uri=self.store_uri)
-        self.assertEqual(bucket_store.fetch_head(), 1)
+        test(bucket_store)
         del bucket_store
         # change pickle protocol gracefully
         bucket_store = file_store.FileBucketStore(store_uri=self.store_uri + '?pickleprotocol=0')
-        self.assertEqual(bucket_store.fetch_head(), 1)
+        test(bucket_store)
         del bucket_store
         bucket_store = file_store.FileBucketStore(store_uri=self.store_uri + '?pickleprotocol=%d' % pickle.HIGHEST_PROTOCOL)
-        self.assertEqual(bucket_store.fetch_head(), 1)
+        test(bucket_store)
         del bucket_store
         # explicitly set same protocol
         bucket_store = file_store.FileBucketStore(store_uri=self.store_uri + '?pickleprotocol=%d' % pickle.HIGHEST_PROTOCOL)
-        self.assertEqual(bucket_store.fetch_head(), 1)
+        test(bucket_store)
