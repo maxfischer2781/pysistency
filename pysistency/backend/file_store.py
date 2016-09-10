@@ -94,6 +94,10 @@ class FileBucketStore(base_store.BaseBucketStore):
             if record['_pickle_protocol'] != self._pickle_protocol:
                 for bucket_key in self.bucket_keys:
                     self.store_bucket(bucket_key, self.fetch_bucket(bucket_key))
+                try:
+                    self.store_head(self.fetch_head())
+                except base_store.BucketNotFound:
+                    pass
         elif '_pickle_protocol' not in record and self._pickle_protocol is NOTSET:
             # default if none set
             self._pickle_protocol = pickle.HIGHEST_PROTOCOL
