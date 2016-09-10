@@ -53,11 +53,11 @@ if __name__ == '__main__':
     with codecs.open(os.path.join(repo_base, 'README.rst'), encoding='utf-8') as f:
         long_description = f.read()
     for directive_re, replacement_re in [
-        (':py:\S*?:`~(.*?)`', '`\g<1>`'),
-        (':py:\S*?:', ''),
-        (':envvar:', ''),
+        ('(:py:\S*?:)', lambda match: ' ' * len(match.group(1))),
+        ('(:envvar:)', lambda match: ' ' * len(match.group(1))),
     ]:
         long_description = re.sub(directive_re, replacement_re, long_description)
+    print(long_description)
 
     setup(
         name=package_name,
@@ -80,7 +80,7 @@ if __name__ == '__main__':
             'License :: OSI Approved :: Apache Software License',
             # 'Programming Language :: Python :: 2.6',
             # 'Programming Language :: Python :: 2.7',
-            'Programming Language :: Python :: 3.3',
+            # 'Programming Language :: Python :: 3.3',
             'Programming Language :: Python :: 3.4',
             'Programming Language :: Python :: 3.5',
             # TODO: confirm others
