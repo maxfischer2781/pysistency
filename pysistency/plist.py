@@ -167,8 +167,8 @@ class PersistentList(abc.MutableSequence):
                 bucket = self._bucket_store.fetch_bucket(bucket_key=bucket_key)
             except BucketNotFound:
                 bucket = ListBucket()
-                if bucket_index_offset is not None:
-                    bucket.index_offset = bucket_index_offset // self._bucket_length * self._bucket_length
+        if bucket.index_offset is None and bucket_index_offset is not None:
+            bucket.index_offset = bucket_index_offset // self._bucket_length * self._bucket_length
         self._active_buckets[bucket_key] = bucket
         self._bucket_cache.appendleft(bucket)
         return bucket
@@ -229,7 +229,7 @@ class PersistentList(abc.MutableSequence):
         try:
             return self._get_cached_item(index)
         except KeyError:
-            bucket = self._get_bucket(self._bucket_key(index))
+            bucket = self._get_bucket(self._bucket_key(index), index)
             item = bucket[index % self._bucket_length]
         self._set_cached_item(index, item)
         return item
@@ -239,7 +239,7 @@ class PersistentList(abc.MutableSequence):
         list_slice = []
         # fetch sub-slice from each bucket
         while start_idx < stop_idx:
-            bucket = self._get_bucket(self._bucket_key(start_idx))
+            bucket = self._get_bucket(self._bucket_key(start_idx), start_idx)
             # stop_idx in next bucket
             if stop_idx // self._bucket_length > start_idx // self._bucket_length:
                 list_slice.extend(bucket[start_idx % self._bucket_length::stride])
@@ -264,7 +264,7 @@ class PersistentList(abc.MutableSequence):
         # fetch sub-slice from each bucket
         while start_idx < stop_idx:
             bucket_key = self._bucket_key(start_idx)
-            bucket = self._get_bucket(bucket_key)
+            bucket = self._get_bucket(bucket_key, start_idx)
             # stop_idx in next bucket
             if stop_idx // self._bucket_length > start_idx // self._bucket_length:
                 slice_length = math.ceil((self._bucket_length - (start_idx % self._bucket_length)) / stride)
@@ -280,7 +280,7 @@ class PersistentList(abc.MutableSequence):
 
     def _set_item(self, index, value):
         bucket_key = self._bucket_key(index)
-        bucket = self._get_bucket(bucket_key)
+        bucket = self._get_bucket(bucket_key, index)
         bucket[index % self._bucket_length] = value
         self._store_bucket(bucket_key, bucket)
         # update item cache
@@ -308,7 +308,7 @@ class PersistentList(abc.MutableSequence):
         self._del_cached_item(pos)
         # delete first element, append first element with next bucket
         this_bucket_key = self._bucket_key(pos)
-        this_bucket = self._get_bucket(this_bucket_key)
+        this_bucket = self._get_bucket(this_bucket_key, pos)
         # remaining elements move one forward
         del this_bucket[pos % self._bucket_length]  # if this fails, IndexError for entire collection
         # index of first element of next bucket
@@ -316,7 +316,7 @@ class PersistentList(abc.MutableSequence):
         # fill missing last element with first of next bucket
         while pos < self._length - 1:
             next_bucket_key = self._bucket_key(pos)
-            next_bucket = self._get_bucket(next_bucket_key)
+            next_bucket = self._get_bucket(next_bucket_key, pos)
             this_bucket.append(next_bucket.pop(0))
             self._store_bucket(this_bucket_key, this_bucket)
             this_bucket_key = next_bucket_key
@@ -333,7 +333,7 @@ class PersistentList(abc.MutableSequence):
     # list methods
     def append(self, item):
         bucket_key = self._bucket_key(self._length)
-        bucket = self._get_bucket(bucket_key)
+        bucket = self._get_bucket(bucket_key, self._length)
         bucket.append(item)
         self._store_bucket(bucket_key, bucket)
         # update item cache
@@ -344,7 +344,7 @@ class PersistentList(abc.MutableSequence):
         # split sequence into chunks to fill each bucket
         while sequence:
             bucket_key = self._bucket_key(self._length)
-            bucket = self._get_bucket(bucket_key)
+            bucket = self._get_bucket(bucket_key, self._length)
             bucket_sequence, sequence = \
                 sequence[:self._bucket_length - len(bucket)], sequence[self._bucket_length - len(bucket):]
             bucket.extend(bucket_sequence)
