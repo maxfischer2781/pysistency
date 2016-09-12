@@ -225,9 +225,7 @@ class PersistentList(abc.MutableSequence):
         return self._get_item(pos)
 
     def _get_item(self, index):
-        # - use cached reference to existing item
-        # - fetch item from cached reference to existing bucket
-        # - fetch item from fetched bucket
+        """Get an individual item"""
         try:
             return self._get_cached_item(index)
         except KeyError:
@@ -237,10 +235,11 @@ class PersistentList(abc.MutableSequence):
         return item
 
     def _get_slice(self, positions):
+        """Get a slice of items"""
         start_idx, stop_idx, stride = positions.indices(self._length)
         list_slice = []
-        # fetch sub-slice from each bucket
-        while start_idx < stop_idx:
+        # slice each bucket until end of slice, list or bucket
+        while start_idx < stop_idx and start_idx < self._length:
             bucket = self._get_bucket(self._bucket_key(start_idx), start_idx)
             # stop_idx in next bucket
             if stop_idx // self._bucket_length > start_idx // self._bucket_length:
