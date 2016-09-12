@@ -162,17 +162,12 @@ class PersistentList(abc.MutableSequence):
         self._bucket_cache.appendleft(bucket)
         return bucket
 
-    def _store_bucket(self, bucket_key, bucket=None):
+    def _store_bucket(self, bucket_key, bucket):
         """
         Store a bucket on disk
 
         :param bucket_key: key for the entire bucket
         """
-        if bucket is None:
-            try:
-                bucket = self._active_buckets[bucket_key]
-            except KeyError:
-                return
         if bucket:
             self._bucket_store.store_bucket(bucket_key=bucket_key, bucket=bucket)
         # free empty buckets
