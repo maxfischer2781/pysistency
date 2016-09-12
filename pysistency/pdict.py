@@ -167,7 +167,6 @@ class PersistentDict(abc.MutableMapping):
             # uninitialized, we don't have content yet
             elif self._bucket_count is None:
                 self._bucket_count = value
-            # TODO: allow resizing backend
             else:
                 self._bucket_count = value
                 self._update_bucket_key_fmt()
