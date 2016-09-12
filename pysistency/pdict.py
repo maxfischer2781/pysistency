@@ -48,12 +48,7 @@ class PersistentDict(abc.MutableMapping):
         self._cache_size = None
         self._updating_layout = False
         # load current settings
-        try:
-            for attr, value in self._bucket_store.fetch_head().items():
-                setattr(self, attr, value)
-            self._update_bucket_key_fmt()
-        except BucketNotFound:
-            pass
+        self._load_head()
         # resume outstanding updates
         # this is only valid but also only possible if we have an
         # existing data structure that was being updated.
@@ -78,14 +73,23 @@ class PersistentDict(abc.MutableMapping):
 
     # Settings
     def _store_head(self):
-        """
-        Store the meta-information of the dict
-        """
+        """Store the meta-information of the dict"""
         self._bucket_store.store_head({
             attr: getattr(self, attr) for attr in
             # work directly on internal values, setters are called as part of init for finalization
             ('_bucket_count', '_bucket_salt', '_updating_layout')
         })
+
+    def _load_head(self):
+        """Load the meta-information of the dict"""
+        try:
+            head = self._bucket_store.fetch_head()
+        except BucketNotFound:
+            pass
+        else:
+            for attr, value in head.items():
+                setattr(self, attr, value)
+            self._update_bucket_key_fmt()
 
     def _bucket_fmt_digits(self, bucket_count=None):
         """Return the number of hex digits required for the bucket name"""
