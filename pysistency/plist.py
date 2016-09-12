@@ -167,6 +167,8 @@ class PersistentList(abc.MutableSequence):
                 bucket = self._bucket_store.fetch_bucket(bucket_key=bucket_key)
             except BucketNotFound:
                 bucket = ListBucket()
+        # some calls may tentatively fetch a bucket, e.g. when looking for the maximum size
+        # post-creation fixing may be necessary
         if bucket.index_offset is None and bucket_index_offset is not None:
             bucket.index_offset = bucket_index_offset // self._bucket_length * self._bucket_length
         self._active_buckets[bucket_key] = bucket
