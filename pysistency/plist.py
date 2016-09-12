@@ -34,7 +34,7 @@ class PersistentList(object):
         self._bucket_store = BaseBucketStore.from_uri(store_uri=store_uri, default_scheme='file')
         # set empty fields
         self._bucket_length = None
-        self._len = 0
+        self._length = 0
         self._bucket_cache = None
         self._cache_size = None
         self.bucket_key_fmt = None
@@ -78,14 +78,6 @@ class PersistentList(object):
         self.bucket_key_fmt = "dlistbkt_%(bucket_length)xs%%x" % {
             'bucket_length': self.bucket_length,
         }
-
-    @property
-    def _length(self):
-        return self._len
-
-    @_length.setter
-    def _length(self, value):
-        self._len = value
 
     # exposed settings
     @property
