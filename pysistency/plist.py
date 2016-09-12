@@ -9,7 +9,8 @@ from pysistency.backend.base_store import BaseBucketStore, BucketNotFound
 
 class ListBucket(list):
     """Subclass of :py:class:`list` allowing for weak references"""
-    pass
+    #: offset of the first index: `global_index == index + index_offset`
+    index_offset = None
 
 
 @inherit_docstrings(inherit_from=list)
@@ -141,15 +142,23 @@ class PersistentList(abc.MutableSequence):
             index += self._length
         return self.bucket_key_fmt % (index // self._bucket_length)
 
-    def _get_bucket(self, bucket_key):
+    def _get_bucket(self, bucket_key, bucket_index_offset=None):
         """
         Return the appropriate bucket from the store.
 
         May return the cached bucket if available.
 
         :param bucket_key: key for the bucket
-        :return: bucket for ``bucket_key``
+        :param bucket_index_offset: offset for any indizes on the bucket
+        :type bucket_index_offset: int or None
+        :return: bucket for `bucket_key`
         :rtype: :py:class:`~DictBucket`
+
+        The optional parameter `bucket_index_offset` is stored on the
+        bucket *if the bucket is newly created*. It is automatically
+        truncated to multiples of the container's bucket length. This
+        allows passing in the index of an item one wants to store, with
+        calculation only performed on demand.
         """
         try:
             return self._active_buckets[bucket_key]
@@ -158,6 +167,8 @@ class PersistentList(abc.MutableSequence):
                 bucket = self._bucket_store.fetch_bucket(bucket_key=bucket_key)
             except BucketNotFound:
                 bucket = ListBucket()
+                if bucket_index_offset is not None:
+                    bucket.index_offset = bucket_index_offset // self._bucket_length * self._bucket_length
         self._active_buckets[bucket_key] = bucket
         self._bucket_cache.appendleft(bucket)
         return bucket
