@@ -152,7 +152,6 @@ class PersistentList(abc.MutableSequence):
         try:
             bucket = self._bucket_store.fetch_bucket(bucket_key=bucket_key)
         except BucketNotFound:
-            self._store_head()
             bucket = ListBucket()
         self._active_buckets[bucket_key] = bucket
         self._bucket_cache.appendleft(bucket)
@@ -364,7 +363,6 @@ class PersistentList(abc.MutableSequence):
         for bucket_key in self._bucket_keys:
             self._bucket_store.free_bucket(bucket_key=bucket_key)
         self._length = 0
-        self._store_head()
         # reset caches
         self._bucket_cache = deque(maxlen=self.cache_size)
         self._active_buckets = type(self._active_buckets)()
