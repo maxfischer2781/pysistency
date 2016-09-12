@@ -70,7 +70,7 @@ class PersistentList(abc.MutableSequence):
         """Calculate the length of the list from the persistent store"""
         if len(self._bucket_store) == 0:
             return 0
-        last_bucket = self._fetch_bucket(self.bucket_key_fmt % (len(self._bucket_store) - 1))
+        last_bucket = self._get_bucket(self.bucket_key_fmt % (len(self._bucket_store) - 1))
         return (len(self._bucket_store) - 1) * self._bucket_length + len(last_bucket)
 
     def _update_bucket_key_fmt(self):
@@ -159,7 +159,7 @@ class PersistentList(abc.MutableSequence):
 
     def _get_bucket(self, bucket_key):
         """
-        Return the appropriate bucket
+        Return the appropriate bucket from the store.
 
         May return the cached bucket if available.
 
