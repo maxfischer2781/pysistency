@@ -141,22 +141,6 @@ class PersistentList(abc.MutableSequence):
             index += self._length
         return self.bucket_key_fmt % (index // self._bucket_length)
 
-    def _fetch_bucket(self, bucket_key):
-        """
-        Return a bucket from disk or create a new one
-
-        :param bucket_key: key for the bucket
-        :return: bucket for ``bucket_key``
-        :rtype: :py:class:`~DictBucket`
-        """
-        try:
-            bucket = self._bucket_store.fetch_bucket(bucket_key=bucket_key)
-        except BucketNotFound:
-            bucket = ListBucket()
-        self._active_buckets[bucket_key] = bucket
-        self._bucket_cache.appendleft(bucket)
-        return bucket
-
     def _get_bucket(self, bucket_key):
         """
         Return the appropriate bucket from the store.
@@ -170,7 +154,13 @@ class PersistentList(abc.MutableSequence):
         try:
             return self._active_buckets[bucket_key]
         except KeyError:
-            return self._fetch_bucket(bucket_key)
+            try:
+                bucket = self._bucket_store.fetch_bucket(bucket_key=bucket_key)
+            except BucketNotFound:
+                bucket = ListBucket()
+        self._active_buckets[bucket_key] = bucket
+        self._bucket_cache.appendleft(bucket)
+        return bucket
 
     def _store_bucket(self, bucket_key, bucket=None):
         """
