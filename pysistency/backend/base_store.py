@@ -37,6 +37,10 @@ class BaseBucketStore(object):
     **record**
       Reserved bucket containing metadata of the store itself.
 
+    :note: While the record and head are accessible as regular buckets, their
+           specialised interfaces use additional functionality. Do not attempt
+           to modify either via the regular bucket interface.
+
     :note: A BucketStore represents the actual data of a persistent container.
            As such, it doesn't make sense to try and store multiple, different
            containers in the same BucketStore. While possible, it will lead to
@@ -58,6 +62,9 @@ class BaseBucketStore(object):
 
     def __repr__(self):
         return '%s(store_uri=%r)' % (self.__class__.__qualname__, self.store_uri)
+
+    def __len__(self):
+        return len(self.bucket_keys)
 
     # URI handling
     ##############
