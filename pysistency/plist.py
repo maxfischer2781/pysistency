@@ -119,7 +119,7 @@ class PersistentList(object):
                 self._bucket_length = value
             # TODO: allow resizing backend
             else:
-                raise NotImplementedError('Changing bucket count not implemented yet')
+                raise NotImplementedError('Changing bucket length not implemented yet')
         # apply secondary settings
         self._update_bucket_key_fmt()
 
