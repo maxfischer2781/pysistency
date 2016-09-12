@@ -34,7 +34,6 @@ class PersistentList(object):
         self._bucket_store = BaseBucketStore.from_uri(store_uri=store_uri, default_scheme='file')
         # set empty fields
         self._bucket_length = None
-        self._bucket_count = 0
         self._len = 0
         self._bucket_cache = None
         self._cache_size = None
@@ -64,15 +63,15 @@ class PersistentList(object):
         """
         self._bucket_store.store_head({
             attr: getattr(self, attr) for attr in
-            ('bucket_length', '_bucket_count')
+            ('bucket_length',)
         })
 
     def _fetch_length(self):
         """Calculate the length of the list from the persistent store"""
-        if self._bucket_count == 0:
+        if len(self._bucket_store) == 0:
             return 0
-        last_bucket = self._fetch_bucket(self.bucket_key_fmt % (self._bucket_count - 1))
-        return (self._bucket_count - 1) * self._bucket_length + len(last_bucket)
+        last_bucket = self._fetch_bucket(self.bucket_key_fmt % (len(self._bucket_store) - 1))
+        return (len(self._bucket_store) - 1) * self._bucket_length + len(last_bucket)
 
     def _update_bucket_key_fmt(self):
         # key: count, salt, index
@@ -86,10 +85,6 @@ class PersistentList(object):
 
     @_length.setter
     def _length(self, value):
-        # detect change of bucket count
-        if self._bucket_count != value // self._bucket_length:
-            self._bucket_count = value // self._bucket_length
-            self._store_head()
         self._len = value
 
     # exposed settings
@@ -377,7 +372,6 @@ class PersistentList(object):
         for bucket_key in self._bucket_keys:
             self._bucket_store.free_bucket(bucket_key=bucket_key)
         self._length = 0
-        self._bucket_count = 0
         self._store_head()
         # reset caches
         self._bucket_cache = deque(maxlen=self.cache_size)
