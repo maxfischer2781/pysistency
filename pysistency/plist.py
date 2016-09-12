@@ -1,5 +1,5 @@
 from weakref import WeakValueDictionary
-from collections import deque
+from collections import deque, abc
 import math
 
 from pysistency.utilities.std_clone import inherit_docstrings
@@ -13,7 +13,7 @@ class ListBucket(list):
 
 
 @inherit_docstrings(inherit_from=list)
-class PersistentList(object):
+class PersistentList(abc.MutableSequence):
     """
     Sequence object that is persistently stored
 
@@ -379,7 +379,7 @@ class PersistentList(object):
     def remove(self, value):
         raise NotImplementedError
 
-    def reverse(self, value):
+    def reverse(self):
         raise NotImplementedError
 
     def __str__(self):
