@@ -142,6 +142,22 @@ class PersistentList(abc.MutableSequence):
             index += self._length
         return self.bucket_key_fmt % (index // self._bucket_length)
 
+    def _bucket_slice(self, index):
+        """
+        Get the minimum/maximum slice of the bucket hosting `index`
+
+        :note: This uses slice range notation, i.e. `bucket = this[min/max]`,
+               meaning that `this[max] in bucket == False` and
+               `len(bucket) == max - min`.
+
+        :param index: key to content in-memory
+        :return: min index, max index
+        """
+        return (
+            index // self._bucket_length * self._bucket_length,
+            (index // self._bucket_length + 1) * self._bucket_length
+        )
+
     def _get_bucket(self, bucket_key, bucket_index_offset=None):
         """
         Return the appropriate bucket from the store.
@@ -219,6 +235,70 @@ class PersistentList(abc.MutableSequence):
             self._store_bucket(bucket_key, bucket)
 
     # sequence interface
+    def _shift_tail(self, start_index, offset, stop_index=None):
+        """
+        Move all items beginning at `start_index` by `offset`
+
+        Moves items such that `start_index - 1` stays `start_index - 1`,
+        while transforming `start_index` => `start_index + offset`,
+        `start_index + 1` => `start_index + offset + 1` etc.
+
+        For `offset < 0`, the values in the original slice
+        `[start_index + offset:start_index]` are discarded. By default, the
+        method guarantees to remove the trailing duplicates, i.e. the
+        transformed slice `[len(this) + offset:]` is the empty sequence.
+        If `stop_index < len(this)`, the original slice `[stop_index:]` is left
+        unmodified; this implies that its deletion is skipped.
+
+        For `offset > 0`, the value of items in the shifted slice
+        `[start_index:start_index + offset]` is undefined.
+
+        :param start_index: index of the first item to move
+        :type start_index: int
+        :param offset: offset to apply to indizes
+        :type offset: int
+        :param stop_index: index of the last item to not move
+        :type stop_index: int or None
+        """
+        stop_index = stop_index if stop_index is not None else self._length
+        if offset == 0 or stop_index <= start_index:
+            return
+        if offset < 0:
+            self._shift_tail_left(start_index, offset * -1, stop_index)
+
+    def _shift_tail_left(self, start_index, abs_offset, stop_index):
+        # A)             < offset | start
+        #   R |          :  |     :aa:bbbb|cccccccc:BBBB|CCCCCCCC:bbbb|cc...
+        #   W |          :aa|bbbb:cccccccc|BBBB:CCCCCCCC|bbbb:cccccccc|BB...
+        # B)    < offset | start
+        #   R | :        :aa|bbbbbbbb:cccc|BBBBBBBB:CCCC|bbbbbbbb:cccc|CC...
+        #   W | :aa:bbbbbbbb|cccc:BBBBBBBB|CCCC:bbbbbbbb|bbbb:cccccccc|BB...
+        switch_reader = False  # switch reader or writer at each step
+        # r/w start_idx, end_idx
+        write_pos = start_index - abs_offset, self._bucket_slice(start_index - abs_offset)[1]
+        read_pos = start_index, self._bucket_slice(start_index)[1]
+        if write_pos[1] - write_pos[0] < read_pos[1] - read_pos[0]:  # case A
+            read_pos = read_pos[0], read_pos[0] - (write_pos[1] - write_pos[0])
+        else:  # case B
+            write_pos = write_pos[0], write_pos[0] - (read_pos[1] - read_pos[0])
+        write_bucket = self._get_bucket(self._bucket_key(write_pos[0]), write_pos[0])
+        read_bucket = self._get_bucket(self._bucket_key(read_pos[0]), read_pos[0])
+        while True:
+            write_bucket[write_pos[0] % self._bucket_length:write_pos[1] % self._bucket_length] = \
+                read_bucket[read_pos[0] % self._bucket_length:read_pos[1] % self._bucket_length]
+            if switch_reader:
+                # write to end of bucket, get that much data from next reader
+                write_pos = write_pos[1], self._bucket_slice(write_pos[1])[1]
+                read_pos = read_pos[1], read_pos[1] - (write_pos[1] - write_pos[0])
+                read_bucket = self._get_bucket(self._bucket_key(read_pos[0]), read_pos[0])
+            else:
+                # read to end of bucket, put that muchdata to next writer
+                read_pos = read_pos[1], self._bucket_slice(read_pos[1])[1]
+                write_pos = write_pos[1], write_pos[1] - (read_pos[1] - read_pos[0])
+
+
+
+
     def __getitem__(self, pos):
         if isinstance(pos, slice):
             return self._get_slice(pos)
@@ -260,9 +340,50 @@ class PersistentList(abc.MutableSequence):
             self._set_item(pos, value)
 
     def _set_slice(self, positions, sequence):
+        # There are two types of slice assignment, signified by the stride:
+        # - stride != 1:
+        #   replaces individual items with individual items of sequence
+        #   requires len(slice) == len(sequence)
+        #       => raise: ValueError:
+        #   for each index in slice: this_list[index] = next(sequence_iter)
+        # - stride = 1:
+        #   replaces consecutive range with sequence
+        #
         start_idx, stop_idx, stride = positions.indices(self._length)
         sequence = list(sequence)
         # fetch sub-slice from each bucket
+        while start_idx < stop_idx:
+            bucket_key = self._bucket_key(start_idx)
+            bucket = self._get_bucket(bucket_key, start_idx)
+            # stop_idx in next bucket
+            if stop_idx // self._bucket_length > start_idx // self._bucket_length:
+                slice_length = math.ceil((self._bucket_length - (start_idx % self._bucket_length)) / stride)
+                bucket[start_idx % self._bucket_length::stride] = sequence[:slice_length]
+            # stop_idx in this bucket
+            else:
+                slice_length = math.ceil(((stop_idx - start_idx) % self._bucket_length) / stride)
+                bucket[start_idx % self._bucket_length:stop_idx % self._bucket_length:stride] = sequence[:slice_length]
+            self._store_bucket(bucket_key, bucket)
+            # advance to next bucket
+            start_idx += slice_length * stride
+            sequence[:] = sequence[slice_length:]
+
+    def _set_slice_consecutive(self, positions, sequence):
+        start_idx, stop_idx, stride = positions.indices(self._length)
+        sequence = list(sequence)
+
+    def _set_slice_stride(self, positions, sequence):
+        start_idx, stop_idx, stride = positions.indices(self._length)
+        sequence = list(sequence)
+        # always iterate in positive direction to reduce checks
+        if start_idx < stop_idx and stride < 0:
+            sequence = reversed(sequence)
+        if max(((stop_idx - start_idx) // stride), 0) != len(sequence):
+            raise ValueError("attempt to assign sequence of size %d to extended slice of size %d" % (
+                len(sequence),
+                ((stop_idx - start_idx) // stride)
+            ))
+        # replace sub-slice in each bucket
         while start_idx < stop_idx:
             bucket_key = self._bucket_key(start_idx)
             bucket = self._get_bucket(bucket_key, start_idx)
