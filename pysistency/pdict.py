@@ -188,6 +188,11 @@ class PersistentDict(abc.MutableMapping):
     # data placement
     # Note: updating layouts relies on new/old bucket keys not conflicting
     def _update_bucket_key_fmt(self):
+        # FIX: during initialization, either count or salt may be None
+        # delay until everything is there
+        if self._bucket_count is None or self._bucket_salt is None:
+            assert self.bucket_key_fmt is None, 'Cound and Salt must exist after initialization'
+            return
         # key: count, salt, index
         self.bucket_key_fmt = "%(bucket_count)x%(bucket_salt)s%%0%(index_digits)dx" % {
             'bucket_count': self.bucket_count,
