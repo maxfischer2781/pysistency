@@ -44,7 +44,7 @@ hashkey_fast.types = {str, bytes, datetime_type}
 
 def hashkey_fast_cython(obj, salt=0):
     """Optimized version of :py:func:`~.hashkey` for cython"""
-    if obj.__class__ in hashkey_fast_types:
+    if obj.__class__ in HASHKEY_FAST_TYPES:
         if obj.__class__ is str:
             return zlib.adler32(obj.encode(), salt) & 0xffffffff
         elif obj.__class__ is bytes:
@@ -53,7 +53,7 @@ def hashkey_fast_cython(obj, salt=0):
         else:
             return zlib.adler32(str(obj).encode(), salt) & 0xffffffff
     return hash(obj) & 0xffffffff
-hashkey_fast_types = {str, bytes, datetime_type}
+HASHKEY_FAST_TYPES = {str, bytes, datetime_type}
 
 if os.environ.get('__PYSISTENCY_FASTHASH__'):
     try:
@@ -63,4 +63,4 @@ if os.environ.get('__PYSISTENCY_FASTHASH__'):
     except ImportError:
         hashkey = hashkey_fast  # noqa
     else:
-        hashkey = hashkey_fast_cython
+        hashkey = hashkey_fast_cython  # noqa

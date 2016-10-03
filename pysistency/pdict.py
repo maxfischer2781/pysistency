@@ -664,7 +664,7 @@ class PersistentDict(abc.MutableMapping):
         return ",".join(reprs)
 
 
-class PersistentDictView(abc.MappingView):
+class PersistentDictView(abc.MappingView):  # pylint: disable=too-many-ancestors
     """View to a :py:class:`~.PersistentDict`"""
     short_name = 'pdict_keys'
 
@@ -675,7 +675,7 @@ class PersistentDictView(abc.MappingView):
         return '%s([%s])' % (self.short_name, ', '.join(str(item) for item in self))
 
 
-class PersistentDictKeysView(PersistentDictView, abc.KeysView):
+class PersistentDictKeysView(PersistentDictView, abc.KeysView):  # pylint: disable=too-many-ancestors
     short_name = 'pdict_keys'
 
     def __iter__(self):
@@ -685,7 +685,7 @@ class PersistentDictKeysView(PersistentDictView, abc.KeysView):
         return item in self._mapping
 
 
-class PersistentDictValuesView(PersistentDictView, abc.ValuesView):
+class PersistentDictValuesView(PersistentDictView, abc.ValuesView):  # pylint: disable=too-many-ancestors
     short_name = 'pdict_values'
 
     def __iter__(self):
@@ -699,7 +699,7 @@ class PersistentDictValuesView(PersistentDictView, abc.ValuesView):
         return any(item == element for element in self)
 
 
-class PersistentDictItemsView(PersistentDictView, abc.ItemsView):
+class PersistentDictItemsView(PersistentDictView, abc.ItemsView):  # pylint: disable=too-many-ancestors
     short_name = 'pdict_items'
 
     def __iter__(self):
