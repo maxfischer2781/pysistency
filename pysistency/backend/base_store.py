@@ -119,15 +119,11 @@ class BaseBucketStore(object):
     # Bucket handling
     #################
     def _load_record(self):
-        """Load and apply the store meta-data"""
+        """Load and apply the store meta-data; not for external use"""
         raise NotImplementedError
 
     def _store_record(self):
         """Store meta-data of the bucket; not for external use"""
-        raise NotImplementedError
-
-    def _fetch_record(self):
-        """Fetch meta-data of the bucket; not for external use"""
         raise NotImplementedError
 
     def free_head(self):
