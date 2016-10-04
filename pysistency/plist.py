@@ -180,7 +180,7 @@ class PersistentList(abc.MutableSequence):
             return self._active_buckets[bucket_key]
         except KeyError:
             try:
-                bucket = self._bucket_store.fetch_bucket(bucket_key=bucket_key)
+                bucket = self._bucket_store.fetch_bucket(bucket_key)
             except BucketNotFound:
                 bucket = ListBucket()
         # some calls may tentatively fetch a bucket, e.g. when looking for the maximum size
@@ -198,7 +198,7 @@ class PersistentList(abc.MutableSequence):
         :param bucket_key: key for the entire bucket
         """
         if bucket:
-            self._bucket_store.store_bucket(bucket_key=bucket_key, bucket=bucket)
+            self._bucket_store.store_bucket(bucket_key, bucket=bucket)
         # free empty buckets
         else:
             self._bucket_store.free_bucket(bucket_key)
@@ -479,7 +479,7 @@ class PersistentList(abc.MutableSequence):
     def clear(self):
         # clear persistent storage
         for bucket_key in self._bucket_keys:
-            self._bucket_store.free_bucket(bucket_key=bucket_key)
+            self._bucket_store.free_bucket(bucket_key)
         self._length = 0
         # reset caches
         self._bucket_cache = deque(maxlen=self.cache_size)

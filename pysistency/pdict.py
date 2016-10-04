@@ -270,7 +270,7 @@ class PersistentDict(abc.MutableMapping):
             bucket = self._active_buckets[bucket_key]
         except KeyError:
             try:
-                bucket = self._bucket_store.fetch_bucket(bucket_key=bucket_key)
+                bucket = self._bucket_store.fetch_bucket(bucket_key)
             except BucketNotFound:
                 bucket = DictBucket()
         self._active_buckets[bucket_key] = bucket
@@ -285,7 +285,7 @@ class PersistentDict(abc.MutableMapping):
         :param bucket: the bucket to store
         """
         if bucket:
-            self._bucket_store.store_bucket(bucket_key=bucket_key, bucket=bucket)
+            self._bucket_store.store_bucket(bucket_key, bucket=bucket)
         # free empty buckets
         else:
             self._bucket_store.free_bucket(bucket_key)
@@ -514,7 +514,7 @@ class PersistentDict(abc.MutableMapping):
         """Remove all items from the dictionary."""
         # clear persistent storage
         for bucket_key in list(self._bucket_store.bucket_keys):
-            self._bucket_store.free_bucket(bucket_key=bucket_key)
+            self._bucket_store.free_bucket(bucket_key)
         self._store_head()
         # reset caches
         self._bucket_cache = deque(maxlen=self.cache_size)

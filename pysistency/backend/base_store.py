@@ -76,7 +76,7 @@ class BaseBucketStore(object):
                 self.__class__.__name__, self.uri_scheme, parsed_url.scheme
             ))
         self._store_uri = value
-        self._digest_uri(parsed_url=parsed_url)
+        self._digest_uri(parsed_url)
         self._load_record()
 
     def _digest_uri(self, parsed_url):

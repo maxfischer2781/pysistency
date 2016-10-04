@@ -4,9 +4,10 @@ try:
 except ImportError:
     import pickle
 
-from pysistency.utilities.constants import NOTSET
-
 from . import base_store
+
+#: Invalid pickle protocol signaling missing initialization
+_NO_PICKLE_PROTOCOL = -2
 
 
 class FileBucketStore(base_store.BaseBucketStore):
@@ -38,8 +39,8 @@ class FileBucketStore(base_store.BaseBucketStore):
     uri_scheme = 'file'
 
     def __init__(self, store_uri):
-        self._pickle_protocol = None
-        self._permissions = None
+        self._pickle_protocol = _NO_PICKLE_PROTOCOL
+        self._permissions = 0o777
         self._path = None
         base_store.BaseBucketStore.__init__(self, store_uri=store_uri)
         os.makedirs(self._path, mode=self._permissions, exist_ok=True)
@@ -59,7 +60,7 @@ class FileBucketStore(base_store.BaseBucketStore):
         try:
             self._pickle_protocol = int(parameters.pop('pickleprotocol'))
         except KeyError:
-            self._pickle_protocol = NOTSET
+            self._pickle_protocol = _NO_PICKLE_PROTOCOL
         self._permissions = int(parameters.pop(
             'permissions',
             (os.stat(os.path.dirname(self._path)).st_mode & 0o777)
@@ -73,12 +74,12 @@ class FileBucketStore(base_store.BaseBucketStore):
         return self._path + bucket_key + '.pkl'
 
     def _store_bucket(self, bucket_key, bucket):
-        with open(self._get_bucket_path(bucket_key=bucket_key), 'wb') as bucket_file:
+        with open(self._get_bucket_path(bucket_key), 'wb') as bucket_file:
             pickle.dump(bucket, bucket_file)
 
     def _free_bucket(self, bucket_key):
         try:
-            os.unlink(self._get_bucket_path(bucket_key=bucket_key))
+            os.unlink(self._get_bucket_path(bucket_key))
         except FileNotFoundError:
             raise base_store.BucketNotFound
 
@@ -89,7 +90,7 @@ class FileBucketStore(base_store.BaseBucketStore):
             record = {}
         self.bucket_keys = record.get('bucket_keys', set())
         self._stores_head = record.get('_stores_head', False)
-        if '_pickle_protocol' in record and self._pickle_protocol is not NOTSET:
+        if '_pickle_protocol' in record and self._pickle_protocol != _NO_PICKLE_PROTOCOL:
             # resolve conflicting setting by rewriting buckets
             if record['_pickle_protocol'] != self._pickle_protocol:
                 for bucket_key in self.bucket_keys:
@@ -98,7 +99,7 @@ class FileBucketStore(base_store.BaseBucketStore):
                     self.store_head(self.fetch_head())
                 except base_store.BucketNotFound:
                     pass
-        elif '_pickle_protocol' not in record and self._pickle_protocol is NOTSET:
+        elif '_pickle_protocol' not in record and self._pickle_protocol == _NO_PICKLE_PROTOCOL:
             # default if none set
             self._pickle_protocol = pickle.HIGHEST_PROTOCOL
         elif '_pickle_protocol' in record:
@@ -109,8 +110,9 @@ class FileBucketStore(base_store.BaseBucketStore):
             self._store_bucket(
                 'record',
                 {
-                    attr: getattr(self, attr) for attr in
-                    ('bucket_keys', '_pickle_protocol', '_stores_head')
+                    'bucket_keys': self.bucket_keys,
+                    '_pickle_protocol': self._pickle_protocol,
+                    '_stores_head': self._stores_head,
                 }
             )
         else:
@@ -146,7 +148,7 @@ class FileBucketStore(base_store.BaseBucketStore):
 
     def fetch_bucket(self, bucket_key):
         try:
-            with open(self._get_bucket_path(bucket_key=bucket_key), 'rb') as bucket_file:
+            with open(self._get_bucket_path(bucket_key), 'rb') as bucket_file:
                 return pickle.load(bucket_file)
         except FileNotFoundError:
             raise base_store.BucketNotFound
