@@ -292,9 +292,10 @@ class PersistentList(abc.MutableSequence):
                 read_pos = read_pos[1], read_pos[1] - (write_pos[1] - write_pos[0])
                 read_bucket = self._get_bucket(self._bucket_key(read_pos[0]), read_pos[0])
             else:
-                # read to end of bucket, put that muchdata to next writer
+                # read to end of bucket, put that much data to next writer
                 read_pos = read_pos[1], self._bucket_slice(read_pos[1])[1]
                 write_pos = write_pos[1], write_pos[1] - (read_pos[1] - read_pos[0])
+                write_bucket = self._get_bucket(self._bucket_key(write_pos[0]), write_pos[0])
 
 
 
