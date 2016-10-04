@@ -15,7 +15,7 @@ class DictBucket(dict):
 
 
 @inherit_docstrings(inherit_from=dict)
-class PersistentDict(abc.MutableMapping):
+class PersistentDict(object):
     """
     Mapping object that is persistently stored
 
@@ -662,6 +662,9 @@ class PersistentDict(abc.MutableMapping):
             if cache_repr:
                 reprs.append(cache_repr + ": <?>")
         return ",".join(reprs)
+
+# register at ABC
+abc.MutableMapping.register(PersistentDict)
 
 
 class PersistentDictView(abc.MappingView):  # pylint: disable=too-many-ancestors
