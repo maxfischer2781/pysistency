@@ -48,8 +48,6 @@ class BaseBucketStore(object):
            against this.
     """
     uri_scheme = None
-    #: options accepted via the URI query part (?foo=2)
-    uri_query_options = {}
 
     def __init__(self, store_uri):
         #: whether a container's head is stored
@@ -112,7 +110,7 @@ class BaseBucketStore(object):
             except ValueError:
                 continue
         # check whether we support it
-        if cls.supports_uri(store_uri=store_uri):
+        if cls.supports_uri(store_uri):
             return cls(store_uri=store_uri)
         raise ValueError('URI %r not supported' % store_uri)
 
