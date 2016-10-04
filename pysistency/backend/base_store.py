@@ -2,8 +2,6 @@ import urllib.parse
 import pysistency.utilities.exceptions
 import collections
 
-from pysistency.utilities.constants import NOTSET
-
 
 class PTPStoreException(pysistency.utilities.exceptions.PTPException):
     pass
@@ -94,13 +92,35 @@ class BaseBucketStore(object):
 
     @classmethod
     def supports_uri(cls, store_uri):
+        """
+        Check whether this class supports a given URI
+
+        :param store_uri: the URI to check
+        :type store_uri: str
+        :returns: whether `store_uri` is supported
+        :rtype: bool
+        """
         return urllib.parse.urlsplit(store_uri).scheme == cls.uri_scheme
 
     @classmethod
-    def from_uri(cls, store_uri, default_scheme=NOTSET):
+    def from_uri(cls, store_uri, default_scheme=None):
+        """
+        Instantiate appropriate class for a given URI
+
+        This method instantiates the most suitable subclass which supports
+        the given URI. By adding new subclasses, the default behaviour for
+        any URI can be transparently overwritten.
+
+        :param store_uri: the URI for storing data
+        :type store_uri: str
+        :param default_scheme: a scheme to assume when none is set in the URI, e.g. `'file'`
+        :type default_scheme: str
+        :return: instance handling `store_uri`
+        :rtype: :py:class:`~BaseBucketStore`
+        """
         # patch in scheme if none provided
         if not urllib.parse.urlsplit(store_uri).scheme:
-            if default_scheme == NOTSET:
+            if default_scheme is None:
                 raise ValueError('URI %r does not provide scheme and no fallback defined' % store_uri)
             store_uri = default_scheme + '://' + store_uri
         # prefer subclasses in case they overwrite the use of our protocol
