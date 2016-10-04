@@ -67,3 +67,19 @@ Backends
 The containers of `pysistency` rely on backends to store data. This allows
 switching the storage backend for each container. Currently, there is only
 one backend: a file-based backend using `pickle`.
+
+Performance
+===========
+
+All objects are implemented in pure python and perform considerable additional
+operations. This limits their performance in regular operation noticeably: you
+can expect a penalty of factor 10 to 100 compared to in-memory builtins.
+
+============== ================== ===============
+Operation Mode Unit Test Duration Speedup vs Py3k
+============== ================== ===============
+Python 3                   4m  5s            1.0x
+Cython (py3)               2m 31s            1.6x
+Python 2                      N/A             N/A
+PyPy2/3                       N/A             N/A
+============== ================== ===============
