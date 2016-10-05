@@ -9,7 +9,7 @@ os:
 #  - osx
 
 env:
-  - __PYSISTENCY_FASTHASH__=
+  - __PYSISTENCY_FASTHASH__=""
   - __PYSISTENCY_FASTHASH__="YES"
   - CYTHONIZE="YES"
 
@@ -22,7 +22,7 @@ before_script:
   - export COVERAGE_PROCESS_START=$(pwd)/.coveragerc
 
 script:
-  - time coverage run setup.py test
+  - time coverage run setup.py test --test-runner timing_test:TimingTextTestRunner
 
 after_success:
   - coverage report
