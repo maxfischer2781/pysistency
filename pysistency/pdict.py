@@ -596,7 +596,7 @@ class PersistentDict(object):
         :param key_values: iterable of ``(key, value)`` pairs
         """
         # sort kvs by bucket
-        key_values = sorted(key_values, key=lambda key_val: self._bucket_key(key_val[0]))
+        key_values = sorted(key_values, key=lambda key_val, to_key=self._bucket_key: to_key(key_val[0]))
         # insert kvs by bucket
         last_bucket_key, bucket = None, None
         for key, value in key_values:
