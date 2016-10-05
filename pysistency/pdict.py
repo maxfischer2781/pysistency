@@ -212,10 +212,16 @@ class PersistentDict(object):
             'bucket_count': self.bucket_count,
             'bucket_salt': HASHKEY_HEXFMT % hashkey(self.bucket_salt, self.bucket_salt),
         }
+        # bucket belongs to the current layout
         if bucket_key.startswith(layout):
-            position = bucket_key[len(layout):]
-            if len(position) == self._bucket_fmt_digits():
-                return all(char in string.hexdigits for char in position)
+            # bucket index is valid
+            if len(bucket_key) - len(layout) == self._bucket_fmt_digits():
+                try:
+                    int(bucket_key[len(layout):], 16)
+                except ValueError:
+                    return False
+                else:
+                    return True
         return False
 
     def update_layout(self):
