@@ -577,44 +577,45 @@ class PersistentDict(object):
                per bucket, not per item. The drawback is a larger memory consumption
                as the entire input is sorted in memory.
         """
-        def updatebuckets(key_values):
-            """
-            Commit entire buckets from key, value pairs
-
-            :param key_values: iterable of ``(key, value)`` pairs
-            """
-            # sort kvs by bucket
-            key_values = sorted(key_values, key=lambda key_val: self._bucket_key(key_val[0]))
-            # insert kvs by bucket
-            last_bucket_key, bucket = None, None
-            for key, value in key_values:
-                bucket_key = self._bucket_key(key)
-                # cycle to next bucket if current one is done
-                if bucket_key != last_bucket_key:
-                    if last_bucket_key is not None:
-                        self._store_bucket(last_bucket_key, bucket)
-                    last_bucket_key = bucket_key
-                    bucket = self._get_bucket(bucket_key)
-                # update bucket
-                bucket[key] = value
-                # update caches
-                if self._keys_cache is not None:
-                    self._keys_cache.add(key)
-                self._set_cached_item(key, value)
-            # commit outstanding bucket, if any
-            if last_bucket_key is not None:
-                self._store_bucket(last_bucket_key, bucket)
         if other is not None:
             # mapping types
             if hasattr(other, "items"):  # dictionary
-                updatebuckets(other.items())
+                self._updatebuckets(other.items())
             elif isinstance(other, abc.Mapping):
-                updatebuckets((key, other[key]) for key in other)
+                self._updatebuckets((key, other[key]) for key in other)
             elif hasattr(other, "keys"):  # partial dictionary
-                updatebuckets((key, other[key]) for key in other.keys())
+                self._updatebuckets((key, other[key]) for key in other.keys())
             else:  # sequence
-                updatebuckets(other)
-        updatebuckets(kwargs.items())
+                self._updatebuckets(other)
+        self._updatebuckets(kwargs.items())
+
+    def _updatebuckets(self, key_values):
+        """
+        Commit entire buckets from key, value pairs
+
+        :param key_values: iterable of ``(key, value)`` pairs
+        """
+        # sort kvs by bucket
+        key_values = sorted(key_values, key=lambda key_val: self._bucket_key(key_val[0]))
+        # insert kvs by bucket
+        last_bucket_key, bucket = None, None
+        for key, value in key_values:
+            bucket_key = self._bucket_key(key)
+            # cycle to next bucket if current one is done
+            if bucket_key != last_bucket_key:
+                if last_bucket_key is not None:
+                    self._store_bucket(last_bucket_key, bucket)
+                last_bucket_key = bucket_key
+                bucket = self._get_bucket(bucket_key)
+            # update bucket
+            bucket[key] = value
+            # update caches
+            if self._keys_cache is not None:
+                self._keys_cache.add(key)
+            self._set_cached_item(key, value)
+        # commit outstanding bucket, if any
+        if last_bucket_key is not None:
+            self._store_bucket(last_bucket_key, bucket)
 
     # iterations
     def keys(self):
