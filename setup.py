@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import re
 import sys
@@ -18,7 +19,7 @@ if __name__ == '__main__':
         import Cython.Distutils
         from distutils.extension import Extension
     except Exception as err:
-        raise SystemExit('Cannot cythonize: %s' % err)
+        print('Cannot cythonize: %s' % err, file=sys.stderr)
     else:
         for dirpath, dirnames, filenames in os.walk(source_base):
             for filename in filenames:
