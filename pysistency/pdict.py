@@ -6,7 +6,12 @@ import string
 from pysistency.utilities.std_clone import inherit_docstrings
 from pysistency.utilities.keys import hashkey, HASHKEY_HEXFMT
 from pysistency.utilities.constants import NOTSET
+from pysistency.utilities.compat import CYTHON_COMPILED
 from pysistency.backend.base_store import BaseBucketStore, BucketNotFound
+
+
+#: Invalid pickle protocol signaling missing initialization
+_UNITIALIZED_INT = -2
 
 
 class DictBucket(dict):
@@ -14,7 +19,6 @@ class DictBucket(dict):
     pass
 
 
-@inherit_docstrings(inherit_from=dict)
 class PersistentDict(object):
     """
     Mapping object that is persistently stored
@@ -39,32 +43,32 @@ class PersistentDict(object):
 
     def __init__(self, store_uri, bucket_count=NOTSET, bucket_salt=NOTSET, cache_size=3, cache_keys=True):
         self._bucket_store = BaseBucketStore.from_uri(store_uri=store_uri, default_scheme='file')
-        # set empty fields
-        self._bucket_count = None
-        self._bucket_salt = None
+        # > set empty fields
+        self._bucket_count = _UNITIALIZED_INT
+        self._bucket_salt = _UNITIALIZED_INT
         self.bucket_key_fmt = None
         self._keys_cache = None
         self._bucket_cache = None
-        self._cache_size = None
         self._updating_layout = False
-        # load current settings
+        # > load current settings
         self._load_head()
-        # resume outstanding updates
-        # this is only valid but also only possible if we have an
-        # existing data structure that was being updated.
-        if self._updating_layout:
-            self.update()
-        # apply new settings
-        self.bucket_count = bucket_count
-        self.bucket_salt = bucket_salt
-        # LRU store for objects fetched from disk
-        self.cache_size = cache_size
-        # weakref store for objects still in use
+        # > setup data structures
+        #   weakref store for objects still in use
         self._active_buckets = WeakValueDictionary()
         self._active_items = WeakValueDictionary()
-        # store new settings
+        #   LRU store for objects fetched from disk
+        self.cache_size = cache_size
+        # > resume outstanding updates
+        #   this is only valid but also only possible if we have an
+        #   existing data structure that was being updated.
+        if self._updating_layout:
+            self.update()
+        # > apply new settings
+        self.bucket_count = bucket_count
+        self.bucket_salt = bucket_salt
+        # > store new settings
         self._store_head()
-        # cache keys in memory
+        # > update cache keys in memory
         self.cache_keys = cache_keys
 
     @property
@@ -75,9 +79,9 @@ class PersistentDict(object):
     def _store_head(self):
         """Store the meta-information of the dict"""
         self._bucket_store.store_head({
-            attr: getattr(self, attr) for attr in
-            # work directly on internal values, setters are called as part of init for finalization
-            ('_bucket_count', '_bucket_salt', '_updating_layout')
+            '_bucket_count': self._bucket_count,
+            '_bucket_salt': self._bucket_salt,
+            '_updating_layout': self._updating_layout,
         })
 
     def _load_head(self):
@@ -99,12 +103,14 @@ class PersistentDict(object):
     # exposed settings
     @property
     def cache_size(self):
-        return self._cache_size
+        return self._bucket_cache.maxlen
 
     @cache_size.setter
     def cache_size(self, value):
-        self._cache_size = int(value or 1)
-        self._bucket_cache = deque(maxlen=self.cache_size)
+        if value is None:
+            self._bucket_cache = deque()
+        else:
+            self._bucket_cache = deque(maxlen=int(value))
 
     @property
     def bucket_salt(self):
@@ -121,7 +127,7 @@ class PersistentDict(object):
     def bucket_salt(self, value):
         # default if unset
         if value == NOTSET:
-            if self._bucket_salt is not None:
+            if self._bucket_salt != _UNITIALIZED_INT:
                 return
             self._bucket_salt = self.persistent_defaults['bucket_salt']
         else:
@@ -154,7 +160,7 @@ class PersistentDict(object):
     def bucket_count(self, value):
         # default if unset
         if value == NOTSET:
-            if self._bucket_count is not None:
+            if self._bucket_count != _UNITIALIZED_INT:
                 return
             self._bucket_count = self.persistent_defaults['bucket_count']
         else:
@@ -386,7 +392,11 @@ class PersistentDict(object):
 
     __nonzero__ = __bool__
 
-    def __eq__(self, other):
+    # Comparison Methods
+    # Cython requires the use of __richcomp__ *only* and fails
+    # when __eq__ etc. are present.
+    # Each __OP__ is defined as __py_OP__ and rebound as required.
+    def __py_eq__(self, other):
         # other is pdict, try some fast comparisons
         if isinstance(other, PersistentDict):
             # we are the same store
@@ -415,8 +425,28 @@ class PersistentDict(object):
                 return False
         return False
 
-    def __ne__(self, other):
+    def __py_ne__(self, other):
         return not self == other
+
+    def __richcomp__(self, other, comp_opcode):  # pragma: no cover
+        # Cython:
+        # Do not rely on the first parameter of these methods, being "self" or the right type.
+        # The types of both operands should be tested before deciding what to do.
+        if not isinstance(self, PersistentDict):
+            self, other = other, self
+        # Comparison opcodes:
+        # < <= == != > >=
+        # 0  1  2  3 4  5
+        if comp_opcode == 2:
+            return self.__eq__(other)
+        elif comp_opcode == 3:
+            return self.__ne__(other)
+        else:
+            return NotImplemented
+
+    if not CYTHON_COMPILED:
+        __eq__ = __py_eq__
+        __ne__ = __py_ne__
 
     def __iter__(self):
         """:see: :py:meth:`~.PersistentDict.keys`"""
@@ -663,6 +693,10 @@ class PersistentDict(object):
                 reprs.append(cache_repr + ": <?>")
         return ",".join(reprs)
 
+# postfix docstrings for cython compatibility
+# TODO: use @inherit_docstrings when supported by cython
+if not CYTHON_COMPILED:
+    inherit_docstrings(inherit_from=dict)(PersistentDict)
 # register at ABC
 abc.MutableMapping.register(PersistentDict)
 
