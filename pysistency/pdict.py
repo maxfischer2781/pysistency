@@ -1,7 +1,6 @@
 from weakref import WeakValueDictionary
 from collections import deque, abc
 import math
-import string
 
 from pysistency.utilities.std_clone import inherit_docstrings
 from pysistency.utilities.keys import hashkey, HASHKEY_HEXFMT
@@ -197,7 +196,7 @@ class PersistentDict(object):
         # FIX: during initialization, either count or salt may be None
         # delay until everything is there
         if self._bucket_count is None or self._bucket_salt is None:
-            assert self.bucket_key_fmt is None, 'Cound and Salt must exist after initialization'
+            assert self.bucket_key_fmt is None, 'Count and Salt must exist after initialization'
             return
         # key: count, salt, index
         self.bucket_key_fmt = "%(bucket_count)x%(bucket_salt)s%%0%(index_digits)dx" % {
@@ -275,6 +274,7 @@ class PersistentDict(object):
         May return the cached bucket if available.
 
         :param bucket_key: key for the bucket
+        :type bucket_key: str
         :return: bucket for ``bucket_key``
         :rtype: :py:class:`~DictBucket`
         """
