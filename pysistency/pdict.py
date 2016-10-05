@@ -393,7 +393,7 @@ class PersistentDict(object):
     __nonzero__ = __bool__
 
     # Comparison Methods
-    # Cython requires the use of __richcomp__ *only* and fails
+    # Cython requires the use of __richcmp__ *only* and fails
     # when __eq__ etc. are present.
     # Each __OP__ is defined as __py_OP__ and rebound as required.
     def __py_eq__(self, other):
@@ -428,7 +428,7 @@ class PersistentDict(object):
     def __py_ne__(self, other):
         return not self == other
 
-    def __richcomp__(self, other, comp_opcode):  # pragma: no cover
+    def __richcmp__(self, other, comp_opcode):  # pragma: no cover
         # Cython:
         # Do not rely on the first parameter of these methods, being "self" or the right type.
         # The types of both operands should be tested before deciding what to do.
@@ -438,9 +438,9 @@ class PersistentDict(object):
         # < <= == != > >=
         # 0  1  2  3 4  5
         if comp_opcode == 2:
-            return self.__eq__(other)
+            return self.__py_eq__(other)
         elif comp_opcode == 3:
-            return self.__ne__(other)
+            return self.__py_ne__(other)
         else:
             return NotImplemented
 
