@@ -580,23 +580,24 @@ class PersistentDict(object):
         if other is not None:
             # mapping types
             if hasattr(other, "items"):  # dictionary
-                self._updatebuckets(other.items())
+                self._update_buckets(list(other.items()))
             elif isinstance(other, abc.Mapping):
-                self._updatebuckets((key, other[key]) for key in other)
+                self._update_buckets(list((key, other[key]) for key in other))
             elif hasattr(other, "keys"):  # partial dictionary
-                self._updatebuckets((key, other[key]) for key in other.keys())
+                self._update_buckets(list((key, other[key]) for key in other.keys()))
             else:  # sequence
-                self._updatebuckets(other)
-        self._updatebuckets(kwargs.items())
+                self._update_buckets(list(other))
+        self._update_buckets(list(kwargs.items()))
 
-    def _updatebuckets(self, key_values):
+    def _update_buckets(self, key_values):
         """
-        Commit entire buckets from key, value pairs
+        Commit key, value pairs consecutively to buckets
 
-        :param key_values: iterable of ``(key, value)`` pairs
+        :param key_values: list of ``(key, value)`` pairs
+        :type key_values: list
         """
         # sort kvs by bucket
-        key_values = sorted(key_values, key=lambda key_val, to_key=self._bucket_key: to_key(key_val[0]))
+        key_values.sort(key=lambda key_val, to_key=self._bucket_key: to_key(key_val[0]))
         # insert kvs by bucket
         last_bucket_key, bucket = None, None
         for key, value in key_values:

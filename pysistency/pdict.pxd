@@ -1,3 +1,5 @@
+import cython
+
 from pysistency.backend.base_store cimport BaseBucketStore
 
 cdef class DictBucket(dict):
@@ -39,8 +41,7 @@ cdef class PersistentDict(object):
     cpdef object popitem(self)
     cpdef object setdefault(self, object key, object default=*)
     cpdef clear(self)
-    #cpdef update(self, other=*, **kwargs)
-    cpdef _updatebuckets(self, key_values)
+    cpdef _update_buckets(self, list key_values)
     cpdef keys(self)
     cpdef items(self)
     cpdef values(self)
