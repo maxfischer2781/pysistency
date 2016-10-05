@@ -40,7 +40,7 @@ cdef class PersistentDict(object):
     cpdef object setdefault(self, object key, object default=*)
     cpdef clear(self)
     #cpdef update(self, other=*, **kwargs)
-    #    cpdef updatebuckets(key_values)
+    cpdef _updatebuckets(self, key_values)
     cpdef keys(self)
     cpdef items(self)
     cpdef values(self)
