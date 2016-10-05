@@ -47,11 +47,7 @@ class TimingTextTestResult(unittest.TextTestResult):
 class TimingTextTestRunner(unittest.TextTestRunner):
     resultclass = TimingTextTestResult
 
-    def __init__(self, stream=None, descriptions=True, verbosity=2,
-                 failfast=False, buffer=False, resultclass=None, warnings=None,
-                 *, tb_locals=False):
-        super(TimingTextTestRunner, self).__init__(
-            stream=stream, descriptions=descriptions, verbosity=verbosity,
-            failfast=failfast, buffer=buffer, resultclass=resultclass, warnings=warnings,
-            tb_locals=tb_locals
-        )
+    def __init__(self, *args, **kwargs):
+        if len(args) < 3 and 'verbosity' not in kwargs:
+            kwargs['verbosity'] = 3
+        super(TimingTextTestRunner, self).__init__(*args, **kwargs)
