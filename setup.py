@@ -19,20 +19,21 @@ if __name__ == '__main__':
         from distutils.extension import Extension
     except Exception as err:
         raise SystemExit('Cannot cythonize: %s' % err)
-    for dirpath, dirnames, filenames in os.walk(source_base):
-        for filename in filenames:
-            name, ext = os.path.splitext(filename)
-            if name == '__init__':
-                continue
-            if ext == '.py':
-                rel_path = os.path.relpath(os.path.join(dirpath, filename), repo_base)
-                mod_path = os.path.splitext(rel_path)[0].replace(os.sep, '.')
-                print(mod_path, rel_path)
-                extensions.append(
-                    Extension(name=mod_path, sources=[os.path.join(repo_base, rel_path)])
-                )
-    if extensions:
-        cmdclass = {'build_ext': Cython.Distutils.build_ext}
+    else:
+        for dirpath, dirnames, filenames in os.walk(source_base):
+            for filename in filenames:
+                name, ext = os.path.splitext(filename)
+                if name == '__init__':
+                    continue
+                if ext == '.py':
+                    rel_path = os.path.relpath(os.path.join(dirpath, filename), repo_base)
+                    mod_path = os.path.splitext(rel_path)[0].replace(os.sep, '.')
+                    print(mod_path, rel_path)
+                    extensions.append(
+                        Extension(name=mod_path, sources=[os.path.join(repo_base, rel_path)])
+                    )
+        if extensions:
+            cmdclass = {'build_ext': Cython.Distutils.build_ext}
 
     # grab meta without import package
     sys.path.insert(0, source_base)
