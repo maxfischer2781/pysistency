@@ -94,7 +94,7 @@ class PersistentDict(object):
                 setattr(self, attr, value)
             self._update_bucket_key_fmt()
 
-    def _bucket_fmt_digits(self, bucket_count=None):
+    def _bucket_fmt_digits(self, bucket_count=0):
         """Return the number of hex digits required for the bucket name"""
         bucket_count = bucket_count or self._bucket_count
         return max(int(math.ceil(math.log(bucket_count, 16))), 1)
