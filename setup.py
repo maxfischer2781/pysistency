@@ -2,12 +2,6 @@ import os
 import re
 import sys
 import codecs
-try:
-    sys.argv.remove('--cythonize')
-except (IndexError, ValueError):
-    cythonize = False
-else:
-    cythonize = True
 
 from setuptools import setup, find_packages
 
@@ -19,29 +13,26 @@ if __name__ == '__main__':
 
     extensions = []
     cmdclass = {}
-    # Cython support
-    if cythonize:
-        try:
-            import Cython.Distutils
-            from distutils.extension import Extension
-        except Exception as err:
-            raise SystemExit('Cannot cythonize: %s' % err)
-        for dirpath, dirnames, filenames in os.walk(source_base):
-            for filename in filenames:
-                name, ext = os.path.splitext(filename)
-                if name == '__init__':
-                    continue
-                if ext == '.py':
-                    rel_path = os.path.relpath(os.path.join(dirpath, filename), repo_base)
-                    mod_path = os.path.splitext(rel_path)[0].replace(os.sep, '.')
-                    print(mod_path, rel_path)
-                    extensions.append(
-                        Extension(name=mod_path, sources=[os.path.join(repo_base, rel_path)])
-                    )
-        if extensions:
-            cmdclass = {'build_ext': Cython.Distutils.build_ext}
-        print(extensions)
-        #sys.exit(1)
+    # Cython support if available
+    try:
+        import Cython.Distutils
+        from distutils.extension import Extension
+    except Exception as err:
+        raise SystemExit('Cannot cythonize: %s' % err)
+    for dirpath, dirnames, filenames in os.walk(source_base):
+        for filename in filenames:
+            name, ext = os.path.splitext(filename)
+            if name == '__init__':
+                continue
+            if ext == '.py':
+                rel_path = os.path.relpath(os.path.join(dirpath, filename), repo_base)
+                mod_path = os.path.splitext(rel_path)[0].replace(os.sep, '.')
+                print(mod_path, rel_path)
+                extensions.append(
+                    Extension(name=mod_path, sources=[os.path.join(repo_base, rel_path)])
+                )
+    if extensions:
+        cmdclass = {'build_ext': Cython.Distutils.build_ext}
 
     # grab meta without import package
     sys.path.insert(0, source_base)
