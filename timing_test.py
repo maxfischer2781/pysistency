@@ -53,28 +53,34 @@ class TimingTextTestResult(unittest.TextTestResult):
         all_count, base = len(durations), 2
         max_exp, min_exp = int(2 * math.log(10, base)), int(-6 * math.log(10, base))
         bins = collections.Counter(round(math.log(val, base)) if val else -999 for val in durations)
-        bin_fmt = '%(val)6s |%(bin)-60s[ %(cnt)5s'
+        mean = sum(dur for dur in durations if dur > 1E-7) / sum(dur > 1E-7 for dur in durations)
+        mean_bin = round(math.log(mean, base))
+        # output
+        bin_fmt = '%(val)6s |%(bin)-60s[ %(cnt)5s%(trl)7s'
         if any(key > max_exp for key in bins):
             bin_count = sum(value for key, value in bins.items() if key > max_exp)
             self.stream.writeln(bin_fmt % {
                 'val': 'AAA',
                 'bin': self._bin_str(bin_count, all_count, 60),
                 'cnt': bin_count,
+                'trl': '',
             })
-        self.stream.writeln(bin_fmt % {'val': '-' * 5, 'bin': '-' * 60, 'cnt': '-' * 3})
+        self.stream.writeln(bin_fmt % {'val': '-' * 5, 'bin': '-' * 60, 'cnt': '-' * 3, 'trl': ''})
         for key in range(max_exp, min_exp - 1, -1):
             self.stream.writeln(bin_fmt % {
                 'val': format_seconds(base ** key),
                 'bin': self._bin_str(bins.get(key, 0), all_count, 60),
                 'cnt': bins.get(key, 0),
+                'trl': '' if mean_bin != key else format_seconds(mean),
             })
-        self.stream.writeln(bin_fmt % {'val': '-' * 5, 'bin': '-' * 60, 'cnt': '-' * 3})
+        self.stream.writeln(bin_fmt % {'val': '-' * 5, 'bin': '-' * 60, 'cnt': '-' * 3, 'trl': ''})
         if any(key < min_exp for key in bins):
             bin_count = sum(value for key, value in bins.items() if key < min_exp)
             self.stream.writeln(bin_fmt % {
                 'val': 'VVV',
                 'bin': self._bin_str(bin_count, all_count, 60),
                 'cnt': bin_count,
+                'trl': '',
             })
 
     def _bin_str(self, value, max_value, max_length, symbols='#+:.'):
