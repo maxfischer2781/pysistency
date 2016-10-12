@@ -9,7 +9,7 @@ from pysistency.utilities.compat import CYTHON_COMPILED
 from pysistency.backend.base_store import BaseBucketStore, BucketNotFound
 
 
-#: Invalid pickle protocol signaling missing initialization
+#: Invalid unsigned int signaling missing initialization
 _UNITIALIZED_INT = -2
 
 
@@ -102,6 +102,15 @@ class PersistentDict(object):
     # exposed settings
     @property
     def cache_size(self):
+        """
+        Get/Set the ``cache_size`` of the persistent container
+
+        The most recently fetched buckets are cached in memory. This is a
+        separate but complementary mechanism to the caching of items still
+        in use. The number of items cached due to the bucket cache is
+        roughly ``pd.cache_size * len(pd) / pd.bucket_count`` or
+        ``pd.cache_size * pd.bucket_length``.
+        """
         return self._bucket_cache.maxlen
 
     @cache_size.setter
